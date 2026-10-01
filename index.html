@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastos Pro</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="gastos-pro.png">
+    <link rel="apple-touch-icon" href="gastos-pro.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Gastos Pro">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('gp-theme');
+                if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.classList.toggle('dark', t === 'dark');
+                var f = localStorage.getItem('gp-font');
+                if (f) document.documentElement.style.fontSize = f + '%';
+            } catch (e) {}
+        })();
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        html .text-\[10px\] { font-size: .625rem; }
+        html .text-\[11px\] { font-size: .6875rem; }
+        /* Modo oscuro */
+        html.dark, html.dark .bg-slate-50 { background-color: #0f172a; }
+        .dark .bg-white { background-color: #1e293b; }
+        .dark .bg-slate-100 { background-color: #273449; }
+        .dark .hover\:bg-slate-200:hover, .dark .hover\:bg-slate-50\/80:hover { background-color: #334155; }
+        .dark .text-slate-900, .dark .text-slate-800 { color: #f1f5f9; }
+        .dark .text-slate-700 { color: #e2e8f0; }
+        .dark .text-slate-600 { color: #cbd5e1; }
+        .dark .text-slate-500 { color: #94a3b8; }
+        .dark .border-slate-100, .dark .border-slate-200, .dark .border-slate-300 { border-color: #334155; }
+        .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+        .dark .bg-emerald-50 { background-color: rgba(16,185,129,.15); }
+        .dark .bg-emerald-100 { background-color: rgba(16,185,129,.2); }
+        .dark .bg-amber-100 { background-color: rgba(245,158,11,.2); }
+        .dark .hover\:bg-emerald-100:hover { background-color: rgba(16,185,129,.25); }
+        .dark .text-emerald-600, .dark .text-emerald-700, .dark .text-emerald-800 { color: #6ee7b7; }
+        .dark .border-emerald-200 { border-color: rgba(16,185,129,.4); }
+        .dark .bg-amber-50 { background-color: rgba(245,158,11,.12); }
+        .dark .text-amber-800, .dark .text-amber-900, .dark .text-amber-950 { color: #fcd34d; }
+        .dark .border-amber-200 { border-color: rgba(245,158,11,.4); }
+        .dark .bg-blue-50 { background-color: rgba(59,130,246,.15); }
+        .dark .text-blue-600, .dark .text-blue-700 { color: #93c5fd; }
+        .dark input, .dark select, .dark textarea { background-color: #0f172a; color: #f1f5f9; border-color: #334155; }
+        .dark ::-webkit-scrollbar-track { background: #1e293b; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .tab-active { color: #34d399 !important; font-weight: 600; background: rgba(16,185,129,.18); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased bg-slate-50">
+
+    <div class="min-h-full flex flex-col">
+        <!-- Header / Navbar -->
+        <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-500 text-white rounded-xl shadow-md">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight leading-tight">Control de Gastos Pro</h1>
+                        <p class="text-xs text-slate-400">Sincronización en vivo: iOS Shortcuts ↔ Google Sheets ↔ Web App</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex space-x-1 sm:space-x-2 bg-slate-800 p-1 rounded-xl text-xs sm:text-sm font-medium">
+                    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-3 py-1.5 rounded-lg transition-all text-slate-300 hover:text-white tab-active">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('register')" id="tab-btn-register" class="px-3 py-1.5 rounded-lg transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-plus-circle mr-1.5"></i> Registrar
+                    </button>
+                    <button onclick="switchTab('history')" id="tab-btn-history" class="px-3 py-1.5 rounded-lg transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-receipt mr-1.5"></i> Historial
+                    </button>
+                    <button onclick="switchTab('shortcuts')" id="tab-btn-shortcuts" class="px-3 py-1.5 rounded-lg transition-all text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-bolt mr-1.5 text-amber-400"></i> Atajos & Google Sheets
+                    </button>
+                </nav>
+
+                <!-- Tema y tamaño de letra -->
+                <div class="flex items-center gap-1 text-sm font-semibold">
+                    <button onclick="changeFont(-10)" aria-label="Reducir letra" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200">A−</button>
+                    <button onclick="changeFont(10)" aria-label="Aumentar letra" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200">A+</button>
+                    <button onclick="toggleTheme()" id="theme-btn" aria-label="Cambiar tema" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700">🌙</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+            <!-- Toast Notification -->
+            <div id="toast-notification" class="hidden mb-6 p-4 rounded-xl bg-emerald-600 text-white shadow-xl flex items-center justify-between transition-all duration-300">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-2xl"></i>
+                    <div>
+                        <h4 class="font-bold text-sm sm:text-base" id="toast-title">¡Operación exitosa!</h4>
+                        <p id="toast-message" class="text-xs sm:text-sm opacity-90"></p>
+                    </div>
+                </div>
+                <button onclick="hideToast()" class="text-white hover:bg-emerald-700 p-1.5 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Google Sheets API Status Banner -->
+            <div id="sheets-config-banner" class="mb-6 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <i class="fa-solid fa-table text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h4 class="text-sm font-bold text-slate-900">Conexión con Google Sheets Script Web App</h4>
+                            <span id="sync-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Modo Local</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5" id="sync-status-desc">Vincula la URL de tu Google Apps Script para sincronizar automáticamente en la nube.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="px-3 py-1.5 rounded-xl border border-slate-300 text-xs w-full sm:w-80 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <button onclick="saveScriptUrl()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow transition whitespace-nowrap">
+                        Guardar URL
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="space-y-6">
+                <!-- Summary KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Mes Actual</span>
+                            <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-calendar-days"></i></span>
+                        </div>
+                        <div id="kpi-total-month" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+                        <p id="kpi-month-count" class="text-xs text-slate-400 mt-1">0 transacciones</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Semana Actual</span>
+                            <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-chart-line"></i></span>
+                        </div>
+                        <div id="kpi-total-week" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+                        <p class="text-xs text-slate-400 mt-1">Últimos 7 días</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Débito & Apple Pay</span>
+                            <span class="p-2 bg-slate-900 text-white rounded-lg"><i class="fa-brands fa-apple"></i></span>
+                        </div>
+                        <div id="kpi-total-debit" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+                        <p class="text-xs text-slate-400 mt-1">Incluye BancoEstado & Apple Pay</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Crédito Pendiente</span>
+                            <span class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-credit-card"></i></span>
+                        </div>
+                        <div id="kpi-total-credit" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+                        <p class="text-xs text-slate-400 mt-1">Por facturar/Pagar</p>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Gastos por Semana del Mes</h3>
+                                <p class="text-xs text-slate-400">Comparativa en Pesos Chilenos ($ CLP)</p>
+                            </div>
+                            <button onclick="syncFromGoogleSheets()" class="px-3 py-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-lg flex items-center gap-1.5 transition border border-emerald-200">
+                                <i class="fa-solid fa-arrows-rotate text-emerald-600" id="sync-icon"></i> Sincronizar desde Sheets
+                            </button>
+                        </div>
+                        <div class="h-64 sm:h-72">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="mb-4">
+                            <h3 class="text-base font-bold text-slate-900">Desglose por Medio de Pago</h3>
+                            <p class="text-xs text-slate-400">Apple Pay, BancoEstado, Crédito, etc.</p>
+                        </div>
+                        <div class="h-64 sm:h-72 flex items-center justify-center">
+                            <canvas id="paymentMethodChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-base font-bold text-slate-900 mb-1">Distribución por Categoría</h3>
+                    <p class="text-xs text-slate-400 mb-4">Supermercado, Cuentas, Transporte, Ocio, etc.</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                        <div class="lg:col-span-1 h-56">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div id="category-summary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: REGISTER EXPENSE -->
+            <section id="tab-register" class="hidden max-w-2xl mx-auto space-y-6">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="border-b border-slate-100 pb-4 mb-6 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">Registrar Nuevo Gasto</h2>
+                            <p class="text-xs text-slate-500 mt-1">Se guardará en esta App y se enviará en vivo a Google Sheets.</p>
+                        </div>
+                        <span class="text-2xl text-emerald-600"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                    </div>
+
+                    <form id="expense-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Monto ($ CLP) *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">$</span>
+                                <input type="text" id="input-amount" required placeholder="Ej: 15.000 o 15000" oninput="formatInputCurrency(this)" class="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm font-semibold text-slate-800">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción / Comercio *</label>
+                            <input type="text" id="input-desc" required placeholder="Ej: Supermercado Lider / Café Starbucks" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Medio de Pago *</label>
+                                <select id="input-method" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-white">
+                                    <option value="Débito - Apple Pay"> Débito (Apple Pay)</option>
+                                    <option value="Débito - BancoEstado">💳 Débito BancoEstado (CuentaRUT)</option>
+                                    <option value="Tarjeta de Crédito">💳 Tarjeta de Crédito</option>
+                                    <option value="Efectivo / Transferencia">💵 Efectivo / Transferencia</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Categoría *</label>
+                                <select id="input-category" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm bg-white">
+                                    <option value="Supermercado">🛒 Supermercado / Comida</option>
+                                    <option value="Servicios & Cuentas">💡 Servicios & Cuentas</option>
+                                    <option value="Transporte">🚗 Transporte / Bencina / Bip</option>
+                                    <option value="Restaurantes & Ocio">🍔 Restaurantes & Ocio</option>
+                                    <option value="Salud & Farmacia">💊 Salud & Farmacia</option>
+                                    <option value="Compras Varias">🛍️ Compras Varias</option>
+                                    <option value="Suscripciones">📱 Suscripciones / Digital</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha</label>
+                                <input type="date" id="input-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Hora</label>
+                                <input type="time" id="input-time" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Estado de Pago</label>
+                            <div class="flex items-center space-x-4 pt-1">
+                                <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
+                                    <input type="radio" name="input-status" value="Pagado" checked class="text-emerald-600 focus:ring-emerald-500">
+                                    <span>Pagado / Débito Inmediato</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-xs font-medium text-slate-700 cursor-pointer">
+                                    <input type="radio" name="input-status" value="Pendiente" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span>Pendiente (Crédito/Factura)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex gap-3">
+                            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Guardar & Sincronizar
+                            </button>
+                            <button type="button" onclick="clearForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 px-4 rounded-xl transition text-sm">
+                                Limpiar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: HISTORY & EDIT -->
+            <section id="tab-history" class="hidden space-y-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Historial de Transacciones</h2>
+                        <p class="text-xs text-slate-400">Puedes editar cualquier monto o detalle con el botón de lápiz</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportToCSV()" class="px-3 py-2 text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded-xl border border-emerald-200 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-csv text-sm"></i> Exportar CSV
+                        </button>
+                        <button onclick="copyForSheets()" class="px-3 py-2 text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold rounded-xl transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-copy"></i> Copiar para Google Sheets
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="text" id="filter-search" oninput="renderHistoryTable()" placeholder="🔍 Buscar por comercio o nota..." class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                    <select id="filter-method" onchange="renderHistoryTable()" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <option value="ALL">Todos los medios de pago</option>
+                        <option value="Débito - Apple Pay">Débito - Apple Pay</option>
+                        <option value="Débito - BancoEstado">Débito - BancoEstado</option>
+                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                        <option value="Efectivo / Transferencia">Efectivo / Transferencia</option>
+                    </select>
+                    <select id="filter-category" onchange="renderHistoryTable()" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <option value="ALL">Todas las categorías</option>
+                        <option value="Supermercado">Supermercado / Comida</option>
+                        <option value="Servicios & Cuentas">Servicios & Cuentas</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Restaurantes & Ocio">Restaurantes & Ocio</option>
+                        <option value="Salud & Farmacia">Salud & Farmacia</option>
+                        <option value="Compras Varias">Compras Varias</option>
+                        <option value="Suscripciones">Suscripciones</option>
+                    </select>
+                </div>
+
+                <!-- Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase font-semibold tracking-wider">
+                                    <th class="py-3 px-4">Fecha / Hora</th>
+                                    <th class="py-3 px-4">Descripción</th>
+                                    <th class="py-3 px-4">Categoría</th>
+                                    <th class="py-3 px-4">Medio de Pago</th>
+                                    <th class="py-3 px-4">Estado</th>
+                                    <th class="py-3 px-4 text-right">Monto ($ CLP)</th>
+                                    <th class="py-3 px-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EDIT EXPENSE MODAL -->
+            <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <h3 class="text-base font-bold text-slate-900">Editar Gasto</h3>
+                        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                    </div>
+
+                    <form id="edit-form" onsubmit="saveEditExpense(event)" class="space-y-3">
+                        <input type="hidden" id="edit-id">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Monto ($ CLP)</label>
+                            <input type="text" id="edit-amount" required oninput="formatInputCurrency(this)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción / Comercio</label>
+                            <input type="text" id="edit-desc" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Medio de Pago</label>
+                                <select id="edit-method" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs">
+                                    <option value="Débito - Apple Pay"> Débito (Apple Pay)</option>
+                                    <option value="Débito - BancoEstado">💳 Débito BancoEstado</option>
+                                    <option value="Tarjeta de Crédito">💳 Tarjeta de Crédito</option>
+                                    <option value="Efectivo / Transferencia">💵 Efectivo / Transferencia</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Categoría</label>
+                                <select id="edit-category" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs">
+                                    <option value="Supermercado">🛒 Supermercado</option>
+                                    <option value="Servicios & Cuentas">💡 Cuentas</option>
+                                    <option value="Transporte">🚗 Transporte</option>
+                                    <option value="Restaurantes & Ocio">🍔 Restaurantes & Ocio</option>
+                                    <option value="Salud & Farmacia">💊 Salud</option>
+                                    <option value="Compras Varias">🛍️ Compras Varias</option>
+                                    <option value="Suscripciones">📱 Suscripciones</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha</label>
+                                <input type="date" id="edit-date" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Estado</label>
+                                <select id="edit-status" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs">
+                                    <option value="Pagado">Pagado</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-3 flex gap-2">
+                            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">Guardar Cambios</button>
+                            <button type="button" onclick="closeEditModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 4: ATAJOS DE IPHONE & TUTORIAL DE GOOGLE SHEETS -->
+            <section id="tab-shortcuts" class="hidden space-y-6">
+                
+                <!-- Architecture Diagram Explanation -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md space-y-4">
+                    <h3 class="text-base font-bold text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project"></i> Arquitectura del Flujo Sincronizado
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <span class="text-amber-400 font-bold block mb-1">1. Atajo de iPhone</span>
+                            <p class="text-slate-300">Pides el monto a Siri o lo ejecutas con tap/Wallet. Envía una solicitud HTTP POST directa a tu servidor de Google Apps Script sin intervención manual.</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <span class="text-emerald-400 font-bold block mb-1">2. Google Sheet (Servidor)</span>
+                            <p class="text-slate-300">Google Apps Script inserta la fila instantáneamente. La hoja calcula las fórmulas automáticamente y actualiza sus tablas dinámicas y gráficos nativos de Google.</p>
+                        </div>
+                        <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <span class="text-blue-400 font-bold block mb-1">3. Esta App Web</span>
+                            <p class="text-slate-300">Al abrir o sincronizar la App Web, esta lee los datos de tu Google Sheet (`doGet`), mostrando tus KPI y gráficos sincronizados al 100% en Pesos Chilenos.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulator Header Card -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2.5 bg-amber-500 text-white rounded-xl shadow-sm mt-0.5">
+                            <i class="fa-solid fa-bolt text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-base font-bold text-amber-950">Simulador de Entrada Automática desde iPhone</h3>
+                            <p class="text-xs text-amber-800 mt-1">
+                                Comprueba cómo Siri o Atajos pueden enviar $15.000 sin errores de formato a la aplicación y a tu Google Sheet:
+                            </p>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button onclick="simulateShortcut('Apple Pay', '15.000', 'Jumbo Supermercado', 'Supermercado')" class="px-3.5 py-2 bg-slate-900 hover:bg-black text-white text-xs font-medium rounded-xl shadow transition">
+                                     Apple Pay $15.000 (Jumbo)
+                                </button>
+                                <button onclick="simulateShortcut('BancoEstado', '8.500', 'Carga Bip / Metro', 'Transporte')" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-xl shadow transition">
+                                    💳 CuentaRUT BancoEstado $8.500
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step-by-Step Google Apps Script Setup Guide -->
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                    <div class="border-b pb-4">
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Paso 1: Configurar Google Apps Script en tu Planilla
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Sigue estos pasos sencillos para convertir tu Google Sheet en un backend API seguro.</p>
+                    </div>
+
+                    <ol class="list-decimal list-inside text-xs text-slate-700 space-y-2">
+                        <li>Crea una nueva planilla en <strong>Google Sheets</strong> (nombra las columnas en la fila 1: <strong class="text-slate-900">Fecha, Hora, Descripción, Categoría, Medio de Pago, Monto, Estado</strong>).</li>
+                        <li>En el menú superior de Google Sheets, ve a <strong>Extensiones ➔ Apps Script</strong>.</li>
+                        <li>Borra el código que aparece por defecto y pega el siguiente código:</li>
+                    </ol>
+
+                    <div class="relative">
+                        <pre class="bg-slate-950 text-emerald-400 p-4 rounded-xl text-xs overflow-x-auto max-h-64 font-mono" id="script-code">
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // Editar o eliminar una fila existente
+  if (data.action === 'update' || data.action === 'delete') {
+    var row = parseInt(data.id);
+    var ok = row >= 2 && row <= sheet.getLastRow();
+    if (ok) {
+      var cur = sheet.getRange(row, 1, 1, 7).getValues()[0];
+      ok = String(cur[2]) === String(data.expectedDesc) && parseInt(cur[5]) === parseInt(data.expectedAmount);
+    }
+    if (!ok) {
+      return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "La fila no coincide" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    if (data.action === 'delete') {
+      sheet.deleteRow(row);
+    } else {
+      var r = sheet.getRange(row, 1, 1, 7);
+      r.setNumberFormats([["@", "@", "@", "@", "@", "0", "@"]]);
+      r.setValues([[data.date, data.time, data.description, data.category, data.method,
+        parseInt(String(data.amount).replace(/\D/g, '')) || 0, data.status]]);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Limpiar monto a número entero ($ CLP)
+  var amountClean = parseInt(String(data.amount).replace(/\D/g, '')) || 0;
+  
+  var tz = Session.getScriptTimeZone();
+  var now = new Date();
+  var newRow = [
+    data.date || Utilities.formatDate(now, tz, "yyyy-MM-dd"),
+    data.time || Utilities.formatDate(now, tz, "HH:mm"),
+    data.description || data.desc || "Gasto",
+    data.category || "Compras Varias",
+    data.method || "Débito - Apple Pay",
+    amountClean,
+    data.status || "Pagado"
+  ];
+  
+  // Fecha y hora como texto para que Sheets no las convierta
+  var range = sheet.getRange(sheet.getLastRow() + 1, 1, 1, 7);
+  range.setNumberFormats([["@", "@", "@", "@", "@", "0", "@"]]);
+  range.setValues([newRow]);
+  
+  return ContentService.createTextOutput(JSON.stringify({ result: "success", row: newRow }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var rows = sheet.getDataRange().getValues();
+  
+  // Ignorar encabezado (fila 1)
+  var expenses = [];
+  for (var i = 1; i < rows.length; i++) {
+    expenses.push({
+      id: (i + 1).toString(),
+      date: formatDate(rows[i][0]),
+      time: rows[i][1] instanceof Date ? Utilities.formatDate(rows[i][1], Session.getScriptTimeZone(), "HH:mm") : (rows[i][1] || "00:00"),
+      desc: rows[i][2],
+      category: rows[i][3],
+      method: rows[i][4],
+      amount: parseInt(rows[i][5]) || 0,
+      status: rows[i][6] || "Pagado"
+    });
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify(expenses))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function formatDate(dateObj) {
+  if (dateObj instanceof Date) {
+    var yyyy = dateObj.getFullYear();
+    var mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    var dd = String(dateObj.getDate()).padStart(2, '0');
+    return yyyy + '-' + mm + '-' + dd;
+  }
+  return dateObj;
+}
+                        </pre>
+                        <button onclick="copyScriptCode()" class="absolute top-3 right-3 px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition">
+                            <i class="fa-solid fa-copy mr-1"></i> Copiar Código
+                        </button>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900 space-y-1">
+                        <strong class="font-bold">⚠️ Pasos de Implementación (Publicación):</strong>
+                        <ol class="list-decimal list-inside space-y-1 mt-1">
+                            <li>Haz clic en el botón azul <strong>Implementar ➔ Nueva implementación</strong>.</li>
+                            <li>En "Seleccionar tipo", elige <strong>Aplicación web</strong>.</li>
+                            <li>En "Quién tiene acceso", selecciona <strong>Cualquier persona (Anyone)</strong>.</li>
+                            <li>Haz clic en <strong>Implementar</strong>, autoriza los permisos y copia la <strong>URL de la app web</strong>.</li>
+                            <li>Pega la URL obtenida en la barra superior de esta aplicación web.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- How Google Sheets Charts Work -->
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-blue-600"></i> Paso 2: Crear Gráficos Automáticos en Google Sheets
+                    </h2>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Cuando Apps Script o la app web agregan una fila a Google Sheets, las fórmulas y gráficos de la hoja se recalculan dinámicamente sin que tengas que hacer nada:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-slate-900">1. Tabla Dinámica / Pivot Table</h4>
+                            <p class="text-slate-600">En Google Sheets, selecciona tus filas ➔ <strong>Insertar ➔ Tabla dinámica</strong>. Coloca <code>Categoría</code> en Filas y <code>Monto</code> en Valores (SUMA).</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-slate-900">2. Gráfico Circular / Columnas</h4>
+                            <p class="text-slate-600">Selecciona la tabla dinámica y haz clic en <strong>Insertar ➔ Gráfico</strong>. Cada nuevo gasto registrado desde tu iPhone actualizará los totales y barras automáticamente.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: iPhone Shortcut Setup -->
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-brands fa-apple text-xl"></i> Paso 3: Atajo de iPhone para Sincronización Silenciosa
+                    </h2>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Puedes enviar gastos a Google Sheets y a la app web de dos formas:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-emerald-700">Opción A (recomendada): POST Silencioso directo a Sheets</h4>
+                            <p class="text-slate-600">En la app Atajos de iOS, añade la acción <strong>"Obtener contenido de URL"</strong>:</p>
+                            <ul class="list-disc list-inside text-[11px] text-slate-600 space-y-1 font-mono">
+                                <li>Método: POST</li>
+                                <li>Encabezados: Content-Type = application/json</li>
+                                <li>Cuerpo: JSON dict con amount, desc, method, category</li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-blue-700">Opción B (solo en Safari, no en la app instalada)</h4>
+                            <p class="text-slate-600">Añade la acción <strong>"Abrir URL"</strong> en iOS con el siguiente formato para precargar y enviar el gasto:</p>
+                            <div class="bg-slate-950 p-2.5 rounded font-mono text-[11px] text-emerald-300 break-all" id="shortcut-url-template">
+                                https://tu-app.com/index.html?amount=[Monto]&desc=[Comercio]&method=[Medio]&category=Supermercado
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Initial Mock Data
+        const initialData = [
+            { id: '1', date: '2026-10-01', time: '08:30', amount: 15000, desc: 'Jumbo Supermercado', category: 'Supermercado', method: 'Débito - Apple Pay', status: 'Pagado' },
+            { id: '2', date: '2026-10-01', time: '13:15', amount: 8500, desc: 'Carga Bip BancoEstado', category: 'Transporte', method: 'Débito - BancoEstado', status: 'Pagado' },
+            { id: '3', date: '2026-09-28', time: '19:40', amount: 35000, desc: 'Bencina Shell', category: 'Transporte', method: 'Tarjeta de Crédito', status: 'Pendiente' },
+            { id: '4', date: '2026-09-25', time: '10:00', amount: 9990, desc: 'Suscripción Netflix', category: 'Suscripciones', method: 'Tarjeta de Crédito', status: 'Pendiente' },
+            { id: '5', date: '2026-09-22', time: '16:20', amount: 12400, desc: 'Farmacia Cruz Verde', category: 'Salud & Farmacia', method: 'Débito - Apple Pay', status: 'Pagado' }
+        ];
+
+        let expenses = [];
+        let scriptUrl = '';
+
+        let weeklyChartInstance = null;
+        let paymentChartInstance = null;
+        let categoryChartInstance = null;
+
+        // Chilean Peso Amount Normalizer & Cleaner
+        function cleanAmount(val) {
+            if (typeof val === 'number') return Math.abs(val);
+            if (!val) return 0;
+            
+            let str = val.toString().trim().replace(/[\$\s]/g, '');
+            if (str.includes('.') && !str.includes(',')) {
+                str = str.replace(/\./g, '');
+            } else if (str.includes('.') && str.includes(',')) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+            
+            const parsed = parseFloat(str);
+            return isNaN(parsed) ? 0 : Math.round(parsed);
+        }
+
+        // Live input currency formatter for Chilean Pesos
+        function formatInputCurrency(inputElement) {
+            let rawValue = inputElement.value.replace(/\D/g, '');
+            if (rawValue === '') {
+                inputElement.value = '';
+                return;
+            }
+            let num = parseInt(rawValue, 10);
+            inputElement.value = num.toLocaleString('es-CL');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            loadExpenses();
+            setCurrentDateTime();
+            parseURLParams();
+            renderDashboard();
+            renderHistoryTable();
+            applyThemeUI();
+            updateShortcutURLTemplate();
+            if (scriptUrl) syncFromGoogleSheets(true);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && scriptUrl) syncFromGoogleSheets(true);
+            });
+        });
+
+        function loadConfig() {
+            scriptUrl = localStorage.getItem('expenses_google_script_url') || '';
+            const input = document.getElementById('script-url-input');
+            const badge = document.getElementById('sync-status-badge');
+            const desc = document.getElementById('sync-status-desc');
+
+            if (scriptUrl) {
+                input.value = scriptUrl;
+                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800";
+                badge.textContent = "Google Sheets Conectado";
+                desc.textContent = "Los gastos se enviarán e importarán automáticamente de tu planilla.";
+            } else {
+                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800";
+                badge.textContent = "Modo Local";
+                desc.textContent = "Pega la URL de Apps Script arriba para activar la sincronización remota.";
+            }
+        }
+
+        function saveScriptUrl() {
+            const input = document.getElementById('script-url-input').value.trim();
+            if (input && !input.startsWith('https://script.google.com')) {
+                alert('Ingresa una URL válida de Google Apps Script (debe iniciar con https://script.google.com)');
+                return;
+            }
+            scriptUrl = input;
+            localStorage.setItem('expenses_google_script_url', scriptUrl);
+            loadConfig();
+            showToast('Configuración Guardada', scriptUrl ? 'Conexión con Google Sheets establecida.' : 'Se eliminó la URL de conexión.');
+            if (scriptUrl) syncFromGoogleSheets();
+        }
+
+        function loadExpenses() {
+            const saved = localStorage.getItem('expenses_pro_data_v2');
+            if (saved) {
+                try {
+                    expenses = JSON.parse(saved);
+                } catch (e) {
+                    expenses = [...initialData];
+                }
+            } else {
+                expenses = [...initialData];
+                saveExpenses();
+            }
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('expenses_pro_data_v2', JSON.stringify(expenses));
+        }
+
+        function setCurrentDateTime() {
+            const now = new Date();
+            document.getElementById('input-date').value = now.toISOString().split('T')[0];
+            document.getElementById('input-time').value = now.toTimeString().substring(0, 5);
+        }
+
+        function parseURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawAmount = urlParams.get('amount') || urlParams.get('monto');
+            const desc = urlParams.get('desc') || urlParams.get('descripcion');
+            const method = urlParams.get('method') || urlParams.get('medio');
+            const category = urlParams.get('category') || urlParams.get('categoria') || 'Compras Varias';
+
+            if (rawAmount && desc) {
+                const parsedAmount = cleanAmount(rawAmount);
+                const now = new Date();
+                
+                const newExpense = {
+                    id: Date.now().toString(),
+                    date: now.toISOString().split('T')[0],
+                    time: now.toTimeString().substring(0, 5),
+                    amount: parsedAmount,
+                    desc: decodeURIComponent(desc),
+                    category: decodeURIComponent(category),
+                    method: normalizeMethod(method),
+                    status: 'Pagado'
+                };
+
+                expenses.unshift(newExpense);
+                saveExpenses();
+
+                // Send to Google Sheets if configured
+                postToGoogleSheets(newExpense);
+
+                // Clear URL params without reload
+                window.history.replaceState({}, document.title, window.location.pathname);
+
+                showToast(
+                    '¡Gasto de iPhone Registrado!', 
+                    `Ingresado $${parsedAmount.toLocaleString('es-CL')} CLP en "${newExpense.desc}" via ${newExpense.method}`
+                );
+            }
+        }
+
+        function normalizeMethod(methodStr) {
+            if (!methodStr) return 'Débito - Apple Pay';
+            const lower = methodStr.toLowerCase();
+            if (lower.includes('apple') || lower.includes('wallet')) return 'Débito - Apple Pay';
+            if (lower.includes('estado') || lower.includes('rut')) return 'Débito - BancoEstado';
+            if (lower.includes('credito') || lower.includes('crédito')) return 'Tarjeta de Crédito';
+            return 'Efectivo / Transferencia';
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['dashboard', 'register', 'history', 'shortcuts'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).classList.remove('tab-active');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabName}`).classList.add('tab-active');
+
+            if (tabName === 'dashboard') renderDashboard();
+            if (tabName === 'history') renderHistoryTable();
+        }
+
+        // Form Submit Handler
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const rawAmount = document.getElementById('input-amount').value;
+            const amount = cleanAmount(rawAmount);
+            const desc = document.getElementById('input-desc').value.trim();
+            const method = document.getElementById('input-method').value;
+            const category = document.getElementById('input-category').value;
+            const date = document.getElementById('input-date').value;
+            const time = document.getElementById('input-time').value;
+            const status = document.querySelector('input[name="input-status"]:checked').value;
+
+            if (!amount || amount <= 0 || !desc) return;
+
+            const newExpense = {
+                id: Date.now().toString(),
+                amount,
+                desc,
+                method,
+                category,
+                date,
+                time,
+                status
+            };
+
+            expenses.unshift(newExpense);
+            saveExpenses();
+
+            if (scriptUrl) {
+                await postToGoogleSheets(newExpense);
+            } else {
+                showToast('Gasto Guardado', `Registrado $${amount.toLocaleString('es-CL')} CLP en modo local.`);
+            }
+
+            clearForm();
+            switchTab('dashboard');
+        }
+
+        async function postToGoogleSheets(expenseItem) {
+            if (!scriptUrl) return;
+
+            try {
+                // Apps Script expects JSON body
+                await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // standard for Apps Script Web Apps
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        date: expenseItem.date,
+                        time: expenseItem.time,
+                        description: expenseItem.desc,
+                        category: expenseItem.category,
+                        method: expenseItem.method,
+                        amount: expenseItem.amount,
+                        status: expenseItem.status
+                    })
+                });
+                showToast('Guardado & Sincronizado', `Gasto enviado con éxito a tu Google Sheet.`);
+            } catch (err) {
+                console.error('Error enviando a Sheets:', err);
+                showToast('Guardado Local', 'El gasto se guardó en la app, pero no se pudo enviar a Google Sheets.');
+            }
+        }
+
+        function applyThemeUI() {
+            const dark = document.documentElement.classList.contains('dark');
+            if (window.Chart) {
+                Chart.defaults.color = dark ? '#cbd5e1' : '#475569';
+                Chart.defaults.borderColor = dark ? 'rgba(148,163,184,.2)' : 'rgba(0,0,0,.1)';
+            }
+            const b = document.getElementById('theme-btn');
+            if (b) b.textContent = dark ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const dark = !document.documentElement.classList.contains('dark');
+            document.documentElement.classList.toggle('dark', dark);
+            try { localStorage.setItem('gp-theme', dark ? 'dark' : 'light'); } catch (e) {}
+            applyThemeUI();
+            renderDashboard();
+        }
+
+        function changeFont(delta) {
+            let f = parseInt(localStorage.getItem('gp-font')) || 100;
+            f = Math.min(150, Math.max(80, f + delta));
+            document.documentElement.style.fontSize = f + '%';
+            try { localStorage.setItem('gp-font', f); } catch (e) {}
+        }
+
+        applyThemeUI();
+
+        function isSheetRow(id) { return /^\d{1,6}$/.test(id); }
+
+        async function sendSheetAction(payload) {
+            if (!scriptUrl) return false;
+            try {
+                await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                await syncFromGoogleSheets(true);
+                return true;
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
+        }
+
+        async function syncFromGoogleSheets(silent = false) {
+            if (!scriptUrl) {
+                showToast('Aviso', 'Configura primero la URL de Google Apps Script para importar datos.');
+                return;
+            }
+
+            const icon = document.getElementById('sync-icon');
+            if (icon) icon.classList.add('fa-spin');
+
+            try {
+                const response = await fetch(scriptUrl);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        expenses = data;
+                        saveExpenses();
+                        renderDashboard();
+                        renderHistoryTable();
+                        if (!silent) showToast('Sincronización Completa', `Se cargaron ${data.length} filas desde Google Sheets.`);
+                    }
+                }
+            } catch (e) {
+                console.error('Error sincronizando desde Sheets:', e);
+                if (!silent) showToast('Error de sincronización', 'No se pudo leer tu Google Sheet. Revisa la URL y la implementación.');
+            } finally {
+                if (icon) icon.classList.remove('fa-spin');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('expense-form').reset();
+            setCurrentDateTime();
+        }
+
+        async function deleteExpense(id) {
+            if (!confirm('¿Eliminar este gasto?')) return;
+            const old = expenses.find(item => item.id === id);
+            expenses = expenses.filter(item => item.id !== id);
+            saveExpenses();
+            renderHistoryTable();
+            renderDashboard();
+            let synced = false;
+            if (scriptUrl && old && isSheetRow(id)) {
+                synced = await sendSheetAction({ action: 'delete', id, expectedDesc: old.desc, expectedAmount: old.amount });
+            }
+            showToast('Eliminado', synced ? 'Gasto eliminado de la app y de Google Sheets.' : 'El gasto fue removido localmente.');
+        }
+
+        // EDIT EXPENSE MODAL LOGIC
+        function openEditModal(id) {
+            const item = expenses.find(e => e.id === id);
+            if (!item) return;
+
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('edit-amount').value = item.amount.toLocaleString('es-CL');
+            document.getElementById('edit-desc').value = item.desc;
+            document.getElementById('edit-method').value = item.method;
+            document.getElementById('edit-category').value = item.category;
+            document.getElementById('edit-date').value = item.date;
+            document.getElementById('edit-status').value = item.status || 'Pagado';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        async function saveEditExpense(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const rawAmount = document.getElementById('edit-amount').value;
+            const amount = cleanAmount(rawAmount);
+
+            const index = expenses.findIndex(item => item.id === id);
+            if (index !== -1) {
+                const old = { ...expenses[index] };
+                expenses[index].amount = amount;
+                expenses[index].desc = document.getElementById('edit-desc').value.trim();
+                expenses[index].method = document.getElementById('edit-method').value;
+                expenses[index].category = document.getElementById('edit-category').value;
+                expenses[index].date = document.getElementById('edit-date').value;
+                expenses[index].status = document.getElementById('edit-status').value;
+
+                saveExpenses();
+                closeEditModal();
+                renderHistoryTable();
+                renderDashboard();
+                const upd = expenses[index];
+                let synced = false;
+                if (scriptUrl && isSheetRow(id)) {
+                    synced = await sendSheetAction({
+                        action: 'update', id, expectedDesc: old.desc, expectedAmount: old.amount,
+                        date: upd.date, time: upd.time, description: upd.desc, category: upd.category,
+                        method: upd.method, amount: upd.amount, status: upd.status
+                    });
+                }
+                showToast('Actualizado', `Gasto modificado a $${amount.toLocaleString('es-CL')} CLP` + (synced ? ' en la app y en Google Sheets.' : ' (solo local).'));
+            }
+        }
+
+        function renderDashboard() {
+            const now = new Date();
+            const currentMonthStr = now.toISOString().substring(0, 7);
+
+            const monthExpenses = expenses.filter(e => e.date && e.date.startsWith(currentMonthStr));
+            const totalMonth = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(now.getDate() - 7);
+            const weekExpenses = expenses.filter(e => e.date && new Date(e.date) >= sevenDaysAgo);
+            const totalWeek = weekExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            const debitExpenses = expenses.filter(e => e.method && e.method.includes('Débito'));
+            const totalDebit = debitExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            const creditExpenses = expenses.filter(e => e.method === 'Tarjeta de Crédito' && e.status === 'Pendiente');
+            const totalCredit = creditExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+            document.getElementById('kpi-total-month').textContent = `$${totalMonth.toLocaleString('es-CL')}`;
+            document.getElementById('kpi-month-count').textContent = `${monthExpenses.length} transacciones este mes`;
+            document.getElementById('kpi-total-week').textContent = `$${totalWeek.toLocaleString('es-CL')}`;
+            document.getElementById('kpi-total-debit').textContent = `$${totalDebit.toLocaleString('es-CL')}`;
+            document.getElementById('kpi-total-credit').textContent = `$${totalCredit.toLocaleString('es-CL')}`;
+
+            renderCharts();
+            renderCategorySummary();
+        }
+
+        function renderCharts() {
+            const weeks = ['Semana 1 (1-7)', 'Semana 2 (8-14)', 'Semana 3 (15-21)', 'Semana 4 (22-31)'];
+            const weeklyTotals = [0, 0, 0, 0];
+
+            const now = new Date();
+            const currentMonthStr = now.toISOString().substring(0, 7);
+
+            expenses.filter(e => e.date && e.date.startsWith(currentMonthStr)).forEach(e => {
+                const day = parseInt(e.date.split('-')[2], 10);
+                if (day <= 7) weeklyTotals[0] += (e.amount || 0);
+                else if (day <= 14) weeklyTotals[1] += (e.amount || 0);
+                else if (day <= 21) weeklyTotals[2] += (e.amount || 0);
+                else weeklyTotals[3] += (e.amount || 0);
+            });
+
+            const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
+            if (weeklyChartInstance) weeklyChartInstance.destroy();
+            weeklyChartInstance = new Chart(ctxWeekly, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [{
+                        label: 'Gasto $ CLP',
+                        data: weeklyTotals,
+                        backgroundColor: '#10b981',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            ticks: { callback: value => '$' + value.toLocaleString('es-CL') },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 2: Payment Methods
+            const methods = ['Débito - Apple Pay', 'Débito - BancoEstado', 'Tarjeta de Crédito', 'Efectivo / Transferencia'];
+            const methodTotals = methods.map(m => expenses.filter(e => e.method === m).reduce((s, e) => s + (e.amount || 0), 0));
+
+            const ctxPayment = document.getElementById('paymentMethodChart').getContext('2d');
+            if (paymentChartInstance) paymentChartInstance.destroy();
+            paymentChartInstance = new Chart(ctxPayment, {
+                type: 'doughnut',
+                data: {
+                    labels: [' Apple Pay', '💳 BancoEstado', '💳 Crédito', '💵 Efectivo'],
+                    datasets: [{
+                        data: methodTotals,
+                        backgroundColor: [document.documentElement.classList.contains('dark') ? '#94a3b8' : '#0f172a', '#d97706', '#2563eb', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+
+            // Chart 3: Categories
+            const categories = ['Supermercado', 'Servicios & Cuentas', 'Transporte', 'Restaurantes & Ocio', 'Salud & Farmacia', 'Compras Varias', 'Suscripciones'];
+            const categoryTotals = categories.map(c => expenses.filter(e => e.category === c).reduce((s, e) => s + (e.amount || 0), 0));
+
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(ctxCategory, {
+                type: 'pie',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: categoryTotals,
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b', '#06b6d4']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderCategorySummary() {
+            const listContainer = document.getElementById('category-summary-list');
+            const categories = ['Supermercado', 'Servicios & Cuentas', 'Transporte', 'Restaurantes & Ocio', 'Salud & Farmacia', 'Compras Varias', 'Suscripciones'];
+            
+            const totals = categories.map(cat => {
+                const total = expenses.filter(e => e.category === cat).reduce((s, e) => s + (e.amount || 0), 0);
+                return { cat, total };
+            }).sort((a, b) => b.total - a.total);
+
+            const totalAll = totals.reduce((s, item) => s + item.total, 0) || 1;
+
+            listContainer.innerHTML = totals.map(item => {
+                const pct = Math.round((item.total / totalAll) * 100);
+                return `
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-800">${item.cat}</div>
+                            <div class="text-[10px] text-slate-400">${pct}% del total</div>
+                        </div>
+                        <div class="text-xs font-bold text-slate-900">$${item.total.toLocaleString('es-CL')}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            const search = document.getElementById('filter-search').value.toLowerCase();
+            const methodFilter = document.getElementById('filter-method').value;
+            const categoryFilter = document.getElementById('filter-category').value;
+
+            const filtered = expenses.filter(e => {
+                const matchSearch = (e.desc || '').toLowerCase().includes(search) || (e.category || '').toLowerCase().includes(search);
+                const matchMethod = methodFilter === 'ALL' || e.method === methodFilter;
+                const matchCategory = categoryFilter === 'ALL' || e.category === categoryFilter;
+                return matchSearch && matchMethod && matchCategory;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400">
+                            No se encontraron registros de gastos.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="py-3 px-4 font-mono text-slate-600">
+                        <div>${item.date || ''}</div>
+                        <div class="text-[10px] text-slate-400">${item.time || '00:00'}</div>
+                    </td>
+                    <td class="py-3 px-4 font-semibold text-slate-900">${escapeHtml(item.desc || '')}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">
+                            ${item.category || 'General'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-medium ${(item.method || '').includes('Apple') ? 'text-slate-900 font-semibold' : 'text-slate-600'}">
+                            ${(item.method || '').includes('Apple') ? '' : '💳'} ${item.method || ''}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.status === 'Pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            ${item.status || 'Pagado'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-right font-bold text-slate-900 font-mono">
+                        $${(item.amount || 0).toLocaleString('es-CL')}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button onclick="openEditModal('${item.id}')" class="p-1 text-slate-400 hover:text-emerald-600 transition" title="Editar Monto o Datos">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteExpense('${item.id}')" class="p-1 text-slate-400 hover:text-red-600 transition" title="Eliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { hideToast(); }, 6000);
+        }
+
+        function hideToast() {
+            document.getElementById('toast-notification').classList.add('hidden');
+        }
+
+        function simulateShortcut(type, formattedAmountStr, desc, category) {
+            const method = type === 'Apple Pay' ? 'Débito - Apple Pay' : 'Débito - BancoEstado';
+            const url = `?amount=${encodeURIComponent(formattedAmountStr)}&desc=${encodeURIComponent(desc)}&method=${encodeURIComponent(method)}&category=${encodeURIComponent(category)}`;
+            window.location.search = url;
+        }
+
+        function updateShortcutURLTemplate() {
+            const currentURL = window.location.href.split('?')[0];
+            document.getElementById('shortcut-url-template').innerText = 
+                `${currentURL}?amount=[Monto]&desc=[Comercio]&method=[Medio_Pago]&category=Supermercado`;
+        }
+
+        function exportToCSV() {
+            let csv = 'Fecha,Hora,Descripcion,Categoria,MedioDePago,Monto,Estado\n';
+            expenses.forEach(e => {
+                csv += `"${e.date}","${e.time}","${e.desc}","${e.category}","${e.method}",${e.amount},"${e.status}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `Gastos_Export_${new Date().toISOString().substring(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function copyForSheets() {
+            let text = 'Fecha\tHora\tDescripción\tCategoría\tMedio de Pago\tMonto\tEstado\n';
+            expenses.forEach(e => {
+                text += `${e.date}\t${e.time}\t${e.desc}\t${e.category}\t${e.method}\t${e.amount}\t${e.status}\n`;
+            });
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast('Copiado', 'Datos copiados al portapapeles. Puedes pegarlos (Ctrl+V) en Google Sheets.');
+        }
+
+        function copyScriptCode() {
+            const code = document.getElementById('script-code').innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = code;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast('Copiado', 'Código de Google Apps Script copiado al portapapeles.');
+        }
+    </script>
+</body>
+</html>
