@@ -167,7 +167,7 @@
                 <!-- Selector de mes -->
                 <div class="flex items-center justify-center gap-3">
                     <button onclick="shiftMonth(-1)" aria-label="Mes anterior" class="w-9 h-9 rounded-lg bg-white border border-slate-200 hover:bg-slate-200 font-bold">◀</button>
-                    <div id="month-label" class="min-w-[10rem] text-center text-sm font-bold text-slate-900 capitalize"></div>
+                    <div id="month-label" class="min-w-[10rem] text-center text-sm font-bold text-slate-900"></div>
                     <button onclick="shiftMonth(1)" aria-label="Mes siguiente" class="w-9 h-9 rounded-lg bg-white border border-slate-200 hover:bg-slate-200 font-bold">▶</button>
                 </div>
 
@@ -774,7 +774,8 @@ function semanaDe(ym, dia) {
         function monthExpenses_(ym) { return expenses.filter(e => e.date && e.date.startsWith(ym)); }
         function monthLabel(ym) {
             const [y, m] = ym.split('-').map(Number);
-            return new Date(y, m - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+            const t = new Date(y, m - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+            return t.charAt(0).toUpperCase() + t.slice(1);
         }
         function shiftMonth(delta) {
             const [y, m] = viewMonth.split('-').map(Number);
@@ -814,7 +815,7 @@ function semanaDe(ym, dia) {
                 byMonth[k].n++;
             });
             document.getElementById('months-table').innerHTML = Object.keys(byMonth).sort().reverse().map(k =>
-                `<button onclick="viewMonth='${k}';renderDashboard()" class="w-full flex justify-between py-2 px-3 rounded-lg text-xs hover:bg-slate-200 ${k === viewMonth ? 'bg-emerald-50 font-bold' : ''}"><span class="capitalize">${monthLabel(k)}</span><span class="text-slate-400">${byMonth[k].n} gastos</span><span class="font-bold text-slate-900">$${byMonth[k].t.toLocaleString('es-CL')}</span></button>`
+                `<button onclick="viewMonth='${k}';renderDashboard()" class="w-full flex justify-between py-2 px-3 rounded-lg text-xs hover:bg-slate-200 ${k === viewMonth ? 'bg-emerald-50 font-bold' : ''}"><span>${monthLabel(k)}</span><span class="text-slate-400">${byMonth[k].n} gastos</span><span class="font-bold text-slate-900">$${byMonth[k].t.toLocaleString('es-CL')}</span></button>`
             ).join('') || '<p class="text-xs text-slate-400">Aún no hay gastos.</p>';
         }
         let paymentChartInstance = null;
@@ -1294,7 +1295,8 @@ function semanaDe(ym, dia) {
                     labels: categories,
                     datasets: [{
                         data: categoryTotals,
-                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b', '#06b6d4']
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b', '#06b6d4'],
+                        borderWidth: 0
                     }]
                 },
                 options: {
