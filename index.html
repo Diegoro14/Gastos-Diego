@@ -164,11 +164,18 @@
 
             <!-- TAB 1: DASHBOARD -->
             <section id="tab-dashboard" class="space-y-6">
+                <!-- Selector de mes -->
+                <div class="flex items-center justify-center gap-3">
+                    <button onclick="shiftMonth(-1)" aria-label="Mes anterior" class="w-9 h-9 rounded-lg bg-white border border-slate-200 hover:bg-slate-200 font-bold">◀</button>
+                    <div id="month-label" class="min-w-[10rem] text-center text-sm font-bold text-slate-900 capitalize"></div>
+                    <button onclick="shiftMonth(1)" aria-label="Mes siguiente" class="w-9 h-9 rounded-lg bg-white border border-slate-200 hover:bg-slate-200 font-bold">▶</button>
+                </div>
+
                 <!-- Summary KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Mes Actual</span>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total del Mes</span>
                             <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-calendar-days"></i></span>
                         </div>
                         <div id="kpi-total-month" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
@@ -242,6 +249,20 @@
                         <div class="lg:col-span-2">
                             <div id="category-summary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Resumen por semana y por mes -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Semanas del mes</h3>
+                        <p class="text-xs text-slate-400 mb-3">De lunes a domingo, cortadas al cambiar de mes</p>
+                        <div id="month-weeks"></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Resumen por mes</h3>
+                        <p class="text-xs text-slate-400 mb-3">Toca un mes para verlo</p>
+                        <div id="months-table" class="space-y-1"></div>
                     </div>
                 </div>
             </section>
@@ -523,7 +544,7 @@
                     <div class="relative">
                         <pre class="bg-slate-950 text-emerald-400 p-4 rounded-xl text-xs overflow-x-auto max-h-64 font-mono" id="script-code">
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data = JSON.parse(e.postData.contents);
   
   // Editar o eliminar una fila existente
@@ -546,6 +567,7 @@ function doPost(e) {
       r.setValues([[data.date, data.time, data.description, data.category, data.method,
         parseInt(String(data.amount).replace(/\D/g, '')) || 0, data.status]]);
     }
+    try { actualizarResumen(); } catch (err) {}
     return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -570,12 +592,13 @@ function doPost(e) {
   range.setNumberFormats([["@", "@", "@", "@", "@", "0", "@"]]);
   range.setValues([newRow]);
   
+  try { actualizarResumen(); } catch (err) {}
   return ContentService.createTextOutput(JSON.stringify({ result: "success", row: newRow }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var rows = sheet.getDataRange().getValues();
   
   // Ignorar encabezado (fila 1)
@@ -605,6 +628,55 @@ function formatDate(dateObj) {
     return yyyy + '-' + mm + '-' + dd;
   }
   return dateObj;
+}
+
+function actualizarResumen() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var rows = ss.getSheets()[0].getDataRange().getValues();
+  var meses = {}, semanas = {};
+  for (var i = 1; i &lt; rows.length; i++) {
+    var f = String(formatDate(rows[i][0]));
+    if (f.length &lt; 10) continue;
+    var ym = f.substring(0, 7), dia = parseInt(f.substring(8, 10), 10);
+    var monto = parseInt(rows[i][5]) || 0;
+    meses[ym] = meses[ym] || { n: 0, t: 0 };
+    meses[ym].n++; meses[ym].t += monto;
+    var w = semanaDe(ym, dia), k = ym + "|" + w.start;
+    semanas[k] = semanas[k] || { ym: ym, w: w, n: 0, t: 0 };
+    semanas[k].n++; semanas[k].t += monto;
+  }
+  var sh = ss.getSheetByName("Resumen") || ss.insertSheet("Resumen");
+  sh.clear();
+  var outM = Object.keys(meses).sort().reverse().map(function (k) { return [k, meses[k].n, meses[k].t]; });
+  var outS = Object.keys(semanas).sort().reverse().map(function (k) {
+    var s = semanas[k];
+    return [s.ym, "Del " + s.w.start + " al " + s.w.end, s.n, s.t];
+  });
+  sh.getRange("A1:C1").setValues([["Mes", "Gastos", "Total"]]);
+  sh.getRange("E1:H1").setValues([["Mes", "Semana", "Gastos", "Total"]]);
+  if (outM.length) {
+    sh.getRange(2, 1, outM.length, 1).setNumberFormat("@");
+    sh.getRange(2, 1, outM.length, 3).setValues(outM);
+    sh.getRange(2, 3, outM.length, 1).setNumberFormat("$#,##0");
+  }
+  if (outS.length) {
+    sh.getRange(2, 5, outS.length, 2).setNumberFormat("@");
+    sh.getRange(2, 5, outS.length, 4).setValues(outS);
+    sh.getRange(2, 8, outS.length, 1).setNumberFormat("$#,##0");
+  }
+  sh.getRange("A1:H1").setFontWeight("bold");
+  sh.autoResizeColumns(1, 8);
+}
+
+function semanaDe(ym, dia) {
+  var y = parseInt(ym.substring(0, 4), 10), m = parseInt(ym.substring(5, 7), 10);
+  var last = new Date(y, m, 0).getDate(), start = 1;
+  while (start &lt;= last) {
+    var dow = (new Date(y, m - 1, start).getDay() + 6) % 7;
+    var end = Math.min(last, start + (6 - dow));
+    if (dia &gt;= start &amp;&amp; dia &lt;= end) return { start: start, end: end };
+    start = end + 1;
+  }
 }
                         </pre>
                         <button onclick="copyScriptCode()" class="absolute top-3 right-3 px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition">
@@ -694,6 +766,57 @@ function formatDate(dateObj) {
         let scriptUrl = '';
 
         let weeklyChartInstance = null;
+
+        function localDateStr(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        let viewMonth = localDateStr(new Date()).substring(0, 7);
+        function monthExpenses_(ym) { return expenses.filter(e => e.date && e.date.startsWith(ym)); }
+        function monthLabel(ym) {
+            const [y, m] = ym.split('-').map(Number);
+            return new Date(y, m - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+        }
+        function shiftMonth(delta) {
+            const [y, m] = viewMonth.split('-').map(Number);
+            viewMonth = localDateStr(new Date(y, m - 1 + delta, 1)).substring(0, 7);
+            renderDashboard();
+        }
+        function monthWeeks(ym) {
+            const [y, m] = ym.split('-').map(Number);
+            const last = new Date(y, m, 0).getDate();
+            const weeks = [];
+            let start = 1;
+            while (start <= last) {
+                const dow = (new Date(y, m - 1, start).getDay() + 6) % 7;
+                const end = Math.min(last, start + (6 - dow));
+                weeks.push({ start, end });
+                start = end + 1;
+            }
+            return weeks;
+        }
+        const weekLabel = (w, i) => `Sem ${i + 1} (${w.start}-${w.end})`;
+        const dayOf = e => parseInt(e.date.split('-')[2], 10);
+
+        function renderMonthSummary() {
+            document.getElementById('month-label').textContent = monthLabel(viewMonth);
+            const list = monthExpenses_(viewMonth);
+            document.getElementById('month-weeks').innerHTML = monthWeeks(viewMonth).map((w, i) => {
+                const items = list.filter(e => dayOf(e) >= w.start && dayOf(e) <= w.end);
+                const t = items.reduce((s, e) => s + (e.amount || 0), 0);
+                return `<div class="flex justify-between py-2 border-b border-slate-100 text-xs"><span class="text-slate-700">${weekLabel(w, i)}</span><span class="text-slate-400">${items.length} gastos</span><span class="font-bold text-slate-900">$${t.toLocaleString('es-CL')}</span></div>`;
+            }).join('');
+            const byMonth = {};
+            expenses.forEach(e => {
+                if (!e.date) return;
+                const k = e.date.substring(0, 7);
+                byMonth[k] = byMonth[k] || { t: 0, n: 0 };
+                byMonth[k].t += (e.amount || 0);
+                byMonth[k].n++;
+            });
+            document.getElementById('months-table').innerHTML = Object.keys(byMonth).sort().reverse().map(k =>
+                `<button onclick="viewMonth='${k}';renderDashboard()" class="w-full flex justify-between py-2 px-3 rounded-lg text-xs hover:bg-slate-200 ${k === viewMonth ? 'bg-emerald-50 font-bold' : ''}"><span class="capitalize">${monthLabel(k)}</span><span class="text-slate-400">${byMonth[k].n} gastos</span><span class="font-bold text-slate-900">$${byMonth[k].t.toLocaleString('es-CL')}</span></button>`
+            ).join('') || '<p class="text-xs text-slate-400">Aún no hay gastos.</p>';
+        }
         let paymentChartInstance = null;
         let categoryChartInstance = null;
 
@@ -792,7 +915,7 @@ function formatDate(dateObj) {
 
         function setCurrentDateTime() {
             const now = new Date();
-            document.getElementById('input-date').value = now.toISOString().split('T')[0];
+            document.getElementById('input-date').value = localDateStr(now);
             document.getElementById('input-time').value = now.toTimeString().substring(0, 5);
         }
 
@@ -809,7 +932,7 @@ function formatDate(dateObj) {
                 
                 const newExpense = {
                     id: Date.now().toString(),
-                    date: now.toISOString().split('T')[0],
+                    date: localDateStr(now),
                     time: now.toTimeString().substring(0, 5),
                     amount: parsedAmount,
                     desc: decodeURIComponent(desc),
@@ -1070,7 +1193,7 @@ function formatDate(dateObj) {
 
         function renderDashboard() {
             const now = new Date();
-            const currentMonthStr = now.toISOString().substring(0, 7);
+            const currentMonthStr = viewMonth;
 
             const monthExpenses = expenses.filter(e => e.date && e.date.startsWith(currentMonthStr));
             const totalMonth = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
@@ -1094,21 +1217,16 @@ function formatDate(dateObj) {
 
             renderCharts();
             renderCategorySummary();
+            renderMonthSummary();
         }
 
         function renderCharts() {
-            const weeks = ['Semana 1 (1-7)', 'Semana 2 (8-14)', 'Semana 3 (15-21)', 'Semana 4 (22-31)'];
-            const weeklyTotals = [0, 0, 0, 0];
-
-            const now = new Date();
-            const currentMonthStr = now.toISOString().substring(0, 7);
-
-            expenses.filter(e => e.date && e.date.startsWith(currentMonthStr)).forEach(e => {
-                const day = parseInt(e.date.split('-')[2], 10);
-                if (day <= 7) weeklyTotals[0] += (e.amount || 0);
-                else if (day <= 14) weeklyTotals[1] += (e.amount || 0);
-                else if (day <= 21) weeklyTotals[2] += (e.amount || 0);
-                else weeklyTotals[3] += (e.amount || 0);
+            const wk = monthWeeks(viewMonth);
+            const weeks = wk.map(weekLabel);
+            const weeklyTotals = wk.map(() => 0);
+            monthExpenses_(viewMonth).forEach(e => {
+                const i = wk.findIndex(w => dayOf(e) >= w.start && dayOf(e) <= w.end);
+                if (i >= 0) weeklyTotals[i] += (e.amount || 0);
             });
 
             const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
@@ -1141,7 +1259,7 @@ function formatDate(dateObj) {
 
             // Chart 2: Payment Methods
             const methods = ['Débito - Apple Pay', 'Débito - BancoEstado', 'Tarjeta de Crédito', 'Efectivo / Transferencia'];
-            const methodTotals = methods.map(m => expenses.filter(e => e.method === m).reduce((s, e) => s + (e.amount || 0), 0));
+            const methodTotals = methods.map(m => monthExpenses_(viewMonth).filter(e => e.method === m).reduce((s, e) => s + (e.amount || 0), 0));
 
             const ctxPayment = document.getElementById('paymentMethodChart').getContext('2d');
             if (paymentChartInstance) paymentChartInstance.destroy();
@@ -1166,7 +1284,7 @@ function formatDate(dateObj) {
 
             // Chart 3: Categories
             const categories = ['Supermercado', 'Servicios & Cuentas', 'Transporte', 'Restaurantes & Ocio', 'Salud & Farmacia', 'Compras Varias', 'Suscripciones'];
-            const categoryTotals = categories.map(c => expenses.filter(e => e.category === c).reduce((s, e) => s + (e.amount || 0), 0));
+            const categoryTotals = categories.map(c => monthExpenses_(viewMonth).filter(e => e.category === c).reduce((s, e) => s + (e.amount || 0), 0));
 
             const ctxCategory = document.getElementById('categoryChart').getContext('2d');
             if (categoryChartInstance) categoryChartInstance.destroy();
@@ -1192,7 +1310,7 @@ function formatDate(dateObj) {
             const categories = ['Supermercado', 'Servicios & Cuentas', 'Transporte', 'Restaurantes & Ocio', 'Salud & Farmacia', 'Compras Varias', 'Suscripciones'];
             
             const totals = categories.map(cat => {
-                const total = expenses.filter(e => e.category === cat).reduce((s, e) => s + (e.amount || 0), 0);
+                const total = monthExpenses_(viewMonth).filter(e => e.category === cat).reduce((s, e) => s + (e.amount || 0), 0);
                 return { cat, total };
             }).sort((a, b) => b.total - a.total);
 
