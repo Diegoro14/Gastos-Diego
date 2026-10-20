@@ -233,6 +233,15 @@
         .tx-side { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
         .tx-amt { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
         .tx-date { font-size: .75rem; color: var(--label2); letter-spacing: .01em; }
+        /* Texto largo: se desplaza solo para poder leerlo completo */
+        .tx-title.mq, .tx-meta.mq { text-overflow: clip; }
+        .mq-inner { display: inline-block; white-space: nowrap; }
+        .mq .mq-inner { animation: mq var(--mq-dur, 6s) ease-in-out infinite alternate; animation-play-state: paused; will-change: transform; }
+        .mq.on .mq-inner { animation-play-state: running; }
+        @keyframes mq {
+            0%, 18% { transform: translate3d(0, 0, 0); }
+            82%, 100% { transform: translate3d(calc(-1 * var(--mq-dist, 0px)), 0, 0); }
+        }
         .toolbar-row { display: flex; flex-wrap: wrap; gap: .5rem; }
 
         /* Toast */
@@ -1323,6 +1332,7 @@ function semanaDe(ym, dia) {
             f = Math.min(150, Math.max(80, f + delta));
             document.documentElement.style.fontSize = f + '%';
             try { localStorage.setItem('gp-font', f); } catch (e) {}
+            setTimeout(setupMarquees, 60);
         }
 
         applyThemeUI();
@@ -1621,7 +1631,40 @@ function semanaDe(ym, dia) {
                     </span>
                 </button>
             `).join('');
+            requestAnimationFrame(setupMarquees);
         }
+
+        // Desplazamiento automático de textos cortados (solo los que no caben; se pausa fuera de pantalla)
+        let mqObserver = null;
+        function setupMarquees() {
+            if (mqObserver) { mqObserver.disconnect(); mqObserver = null; }
+            const els = document.querySelectorAll('#history-table-body .tx-title, #history-table-body .tx-meta');
+            els.forEach(el => {
+                const inner = el.querySelector('.mq-inner');
+                if (inner) el.innerHTML = inner.innerHTML;          // quitar envoltorio anterior
+                el.classList.remove('mq', 'on');
+            });
+            if (reduceMotion() || !('IntersectionObserver' in window)) return;   // con movimiento reducido queda con "…"
+            mqObserver = new IntersectionObserver(entries => {
+                entries.forEach(en => en.target.classList.toggle('on', en.isIntersecting));
+            }, { threshold: 0.1 });
+            els.forEach(el => {
+                if (!el.clientWidth || el.scrollWidth <= el.clientWidth + 1) return;
+                const inner = document.createElement('span');
+                inner.className = 'mq-inner';
+                inner.innerHTML = el.innerHTML;
+                el.innerHTML = '';
+                el.appendChild(inner);
+                const dist = Math.ceil(inner.offsetWidth - el.clientWidth) + 2;
+                if (dist <= 2) { el.innerHTML = inner.innerHTML; return; }
+                el.style.setProperty('--mq-dist', dist + 'px');
+                el.style.setProperty('--mq-dur', Math.max(4, dist / 18).toFixed(2) + 's');
+                el.classList.add('mq');
+                mqObserver.observe(el);
+            });
+        }
+        let mqResizeTimer = null;
+        window.addEventListener('resize', () => { clearTimeout(mqResizeTimer); mqResizeTimer = setTimeout(setupMarquees, 150); });
 
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
