@@ -323,7 +323,7 @@
         /* Reemplaza la tabbar fija original por una barra flotante en píldora con gota de vidrio */
         .lg-bar {
             position: fixed; left: 14px; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 40;
-            height: 62px; border-radius: 31px;
+            height: 68px; border-radius: 34px;
             background: rgba(255,255,255,.18);
             -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 0 0 1px rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.18);
@@ -335,10 +335,12 @@
             box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.5);
         }
         .lg-tabs { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; }
-        .lg-tab { all: unset; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-            color: var(--label); opacity: 0.55; font-size: 9.5px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
+        .lg-tab { all: unset; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+            color: var(--label); opacity: 0.55; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
             transition: opacity 200ms ease; }
-        .lg-tab i { font-size: 1.0625rem; height: 1.375rem; line-height: 1.375rem; }
+        .lg-tab i, .lg-tab svg { font-size: 1.5rem; height: 1.75rem; line-height: 1.75rem; }
+        .lg-tab svg { width: 1.5rem; }
+        .lg-tab span { line-height: 1.1; }
         .lg-tab:focus-visible { outline: 2px solid var(--tint); outline-offset: -4px; border-radius: 24px; }
         .lg-base { width: 100%; height: 100%; }
         .lg-lens-tabs .lg-tab { color: var(--label); opacity: 1 !important; }
@@ -346,7 +348,7 @@
 
         /* La gota de vidrio: transparente, hundida hacia adentro, con borde de luz fino */
         .lg-lens {
-            position: absolute; left: 0; top: 4px; border-radius: 28px; will-change: transform;
+            position: absolute; left: 0; top: 4px; border-radius: 30px; will-change: transform;
             background: radial-gradient(closest-side at 50% 50%, rgba(255,255,255,.06) 55%, rgba(0,0,0,.18) 100%);
             -webkit-backdrop-filter: brightness(.94) saturate(1.5); backdrop-filter: brightness(.94) saturate(1.5);
             box-shadow:
@@ -405,12 +407,13 @@
         }
         .lg-setting-row .lg-desc { font-size: .75rem; color: var(--label2); margin-top: .375rem; line-height: 1.4; }
 
-        /* En pantallas muy pequeñas la barra se ajusta para que las 5 pestañas quepan bien */
+        /* En pantallas muy pequeñas la barra se ajusta para que las 4 pestañas quepan bien */
         @media (max-width: 22rem) {
-            .lg-bar { left: 8px; right: 8px; height: 56px; border-radius: 28px; }
-            .lg-lens { border-radius: 24px; top: 4px; }
-            .lg-tab { font-size: 8.5px; }
-            .lg-tab i { font-size: .9375rem; }
+            .lg-bar { left: 8px; right: 8px; height: 62px; border-radius: 31px; }
+            .lg-lens { border-radius: 27px; top: 4px; }
+            .lg-tab { font-size: 9.5px; gap: 2px; }
+            .lg-tab i, .lg-tab svg { font-size: 1.3125rem; height: 1.5rem; line-height: 1.5rem; }
+            .lg-tab svg { width: 1.3125rem; }
         }
     </style>
 </head>
