@@ -1992,10 +1992,9 @@ function semanaDe(ym, dia) {
             var dragging = false, raf = 0, last = 0;
             var mag = 1.3, dis = 1, glr = 1, flash = 0, gx = 0.3, gy = 0.15;
             var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-            // Física del resorte: K más alto = respuesta más rápida (menos "pesado").
-            // C más alto = menos rebote. Valores originales iOS 26 eran K=240, C=21
-            // pero se sentía lento en esta barra; subimos a K=340, C=28 para más snap.
-            var K = reduce ? 280 : 340, C = reduce ? 36 : 28;
+            // Física del resorte: valores originales iOS 26 (K=240, C=21).
+            // Estos valores son los que el usuario probó y aprobó — no cambiar.
+            var K = 240, C = reduce ? 40 : 21;
 
             function measure() {
                 W = bar.clientWidth; H = bar.clientHeight;
@@ -2011,11 +2010,9 @@ function semanaDe(ym, dia) {
             }
             function xFor(i) { return PAD + i * tabW; }
             function clampX(px) { return Math.max(PAD, Math.min(W - PAD - tabW, px)); }
-            // CRÍTICO: al soltar la gota, debe encajar en la pestaña MÁS CERCANA,
-            // no en la anterior. Math.round() redondea al índice más cercano,
-            // Math.floor() siempre va hacia abajo (deja la gota "a medio camino" si
-            // se suelta a la derecha del centro entre dos pestañas).
-            function indexAt(px) { return Math.max(0, Math.min(N - 1, Math.round((px - PAD) / tabW))); }
+            // indexAt: comportamiento original (Math.floor). El usuario probó este snap
+            // y lo aprobó — los cambios a Math.round causaban saltos imprevistos.
+            function indexAt(px) { return Math.max(0, Math.min(N - 1, Math.floor((px - PAD) / tabW))); }
 
             function localX(e) { var r = bar.getBoundingClientRect(); return (e.clientX - r.left) * (W / r.width); }
             function updateGlare(e) {
