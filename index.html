@@ -318,6 +318,100 @@
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--label3); border-radius: 99px; }
+
+        /* ───────── Tab bar Liquid Glass (iOS 26) ───────── */
+        /* Reemplaza la tabbar fija original por una barra flotante en píldora con gota de vidrio */
+        .lg-bar {
+            position: fixed; left: 14px; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 40;
+            height: 62px; border-radius: 31px;
+            background: rgba(255,255,255,.18);
+            -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 0 0 1px rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.18);
+            will-change: transform;
+            touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
+        }
+        html.dark .lg-bar {
+            background: rgba(30, 30, 33, 0.38);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.5);
+        }
+        .lg-tabs { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; }
+        .lg-tab { all: unset; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+            color: var(--label); opacity: 0.55; font-size: 9.5px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
+            transition: opacity 200ms ease; }
+        .lg-tab i { font-size: 1.0625rem; height: 1.375rem; line-height: 1.375rem; }
+        .lg-tab:focus-visible { outline: 2px solid var(--tint); outline-offset: -4px; border-radius: 24px; }
+        .lg-base { width: 100%; height: 100%; }
+        .lg-lens-tabs .lg-tab { color: var(--label); opacity: 1 !important; }
+        html.dark .lg-lens-tabs .lg-tab { color: #fff; opacity: 1 !important; }
+
+        /* La gota de vidrio: transparente, hundida hacia adentro, con borde de luz fino */
+        .lg-lens {
+            position: absolute; left: 0; top: 4px; border-radius: 28px; will-change: transform;
+            background: radial-gradient(closest-side at 50% 50%, rgba(255,255,255,.06) 55%, rgba(0,0,0,.18) 100%);
+            -webkit-backdrop-filter: brightness(.94) saturate(1.5); backdrop-filter: brightness(.94) saturate(1.5);
+            box-shadow:
+                inset 0 7px 9px -5px rgba(0,0,0,.32),
+                inset 0 -6px 8px -5px rgba(0,0,0,.22),
+                inset 2px 0 2px -1px rgba(255, 90, 80, .35),
+                inset -2px 0 2px -1px rgba(80, 150, 255, .4),
+                inset 0 0 0 1px rgba(0,0,0,.1),
+                inset 0 1px 0 rgba(255,255,255,.85),
+                inset 0 -1px 0 rgba(255,255,255,.35),
+                0 3px 12px rgba(0,0,0,.18);
+        }
+        html.dark .lg-lens {
+            background: radial-gradient(closest-side at 50% 50%, rgba(255,255,255,.03) 55%, rgba(0,0,0,.4) 100%);
+            -webkit-backdrop-filter: brightness(.92) saturate(1.4); backdrop-filter: brightness(.92) saturate(1.4);
+        }
+        .lg-lens::after {
+            content: ""; position: absolute; left: 24%; right: 24%; top: 1px; height: 3px; border-radius: 3px;
+            background: linear-gradient(90deg, rgba(120,200,255,0), rgba(255,255,255,.95) 30%, rgba(255,255,255,.95) 70%, rgba(255,120,120,0));
+            filter: blur(.4px); pointer-events: none;
+        }
+        .lg-lens::before {
+            content: ""; position: absolute; left: 30%; right: 30%; bottom: 1px; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events: none;
+        }
+        .lg-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; isolation: isolate; }
+        .lg-ch { position: absolute; left: 0; top: 0; }
+        .lg-lens-tabs.r .lg-tab { color: #ff2a45; }
+        .lg-lens-tabs.b .lg-tab { color: #2a8bff; }
+        .lg-lens-tabs.r, .lg-lens-tabs.b { mix-blend-mode: screen; }
+        .lg-glare { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+            background: radial-gradient(circle at var(--gx, 30%) var(--gy, 12%), rgba(255,255,255,.8) 0, rgba(190,225,255,.4) 16%, rgba(255,255,255,0) 52%); }
+        .lg-rim { position: absolute; inset: 0; border-radius: inherit; padding: 1.6px; pointer-events: none; opacity: .9;
+            background: conic-gradient(from var(--ang, -30deg), rgba(255,255,255,0) 0deg, rgba(255,255,255,.95) 26deg, rgba(120,200,255,.5) 48deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 180deg, rgba(255,150,130,.45) 215deg, rgba(255,255,255,.7) 238deg, rgba(255,255,255,0) 285deg);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+        .lg-clone { position: absolute; left: 0; top: 0; pointer-events: none; }
+
+        /* Mantenemos la tabbar original oculta (no se renderiza, solo queda el markup por si se referencia) */
+        .tabbar.original { display: none !important; }
+
+        /* ───────── Personalización (Ajustes) ───────── */
+        .lg-setting-row {
+            background: var(--card); border-radius: 1.25rem; padding: 1rem 1.125rem; box-shadow: var(--shadow);
+        }
+        .lg-setting-row .lg-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+        .lg-setting-row .lg-label { font-size: .9375rem; font-weight: 600; color: var(--label); letter-spacing: -0.01em; }
+        .lg-setting-row .lg-value { font-size: .875rem; color: var(--label2); font-variant-numeric: tabular-nums; }
+        .lg-setting-row .lg-reset {
+            all: unset; cursor: pointer; font-size: .75rem; font-weight: 600; color: var(--tint);
+            padding: .3125rem .625rem; border-radius: .5rem; background: var(--tint-t); transition: background .15s;
+        }
+        .lg-setting-row .lg-reset:active { background: rgba(0,122,255,.28); }
+        .lg-setting-row input[type="range"] {
+            width: 100%; margin-top: .625rem; accent-color: var(--tint); height: 1.5rem;
+        }
+        .lg-setting-row .lg-desc { font-size: .75rem; color: var(--label2); margin-top: .375rem; line-height: 1.4; }
+
+        /* En pantallas muy pequeñas la barra se ajusta para que las 5 pestañas quepan bien */
+        @media (max-width: 22rem) {
+            .lg-bar { left: 8px; right: 8px; height: 56px; border-radius: 28px; }
+            .lg-lens { border-radius: 24px; top: 4px; }
+            .lg-tab { font-size: 8.5px; }
+            .lg-tab i { font-size: .9375rem; }
+        }
     </style>
 </head>
 <body>
@@ -327,7 +421,7 @@
         <div class="topbar-in">
             <div class="brand">
                 <h1>Gastos</h1>
-                <button class="chip press" id="sync-chip" onclick="switchTab('shortcuts')" aria-label="Estado de Google Sheets">
+                <button class="chip press" id="sync-chip" onclick="switchTab('settings')" aria-label="Estado de Google Sheets">
                     <span class="dot" id="sync-dot"></span><span id="sync-chip-text">Local</span>
                 </button>
             </div>
@@ -520,11 +614,58 @@
             </div>
         </section>
 
-        <!-- TAB 4: ATAJOS Y GOOGLE SHEETS -->
-        <section id="tab-shortcuts" class="hidden stack view">
+        <!-- TAB 4: AJUSTES (antes Atajos, ahora con personalización de la barra) -->
+        <section id="tab-settings" class="hidden stack view">
             <div style="margin:.5rem .25rem 0">
-                <h2 class="section-title" style="margin:0">Atajos y Google Sheets</h2>
-                <p class="card-sub">Conecta tu planilla y registra gastos desde el iPhone.</p>
+                <h2 class="section-title" style="margin:0">Ajustes</h2>
+                <p class="card-sub">Conecta tu planilla, registra gastos desde el iPhone y personaliza la barra.</p>
+            </div>
+
+            <!-- Personalización de la barra Liquid Glass -->
+            <div class="card">
+                <div class="card-head" style="margin-bottom:.875rem">
+                    <div>
+                        <h3 class="card-title">Barra de pestañas</h3>
+                        <p class="card-sub">Personaliza el efecto Liquid Glass en vivo.</p>
+                    </div>
+                </div>
+
+                <div class="lg-setting-row">
+                    <div class="lg-row-head">
+                        <span class="lg-label">Magnificación de la lupa</span>
+                        <button class="lg-reset" data-lg-reset="mag" aria-label="Restablecer magnificación">Restablecer</button>
+                    </div>
+                    <input id="lg-mag" type="range" min="1" max="1.8" step="0.01" value="1.3" aria-label="Magnificación">
+                    <div class="lg-row-head" style="margin-top:.25rem"><span class="lg-value" id="lg-mag-out">1.30×</span><span></span></div>
+                    <p class="lg-desc">Cuánto se agranda el ícono dentro de la gota de vidrio al pasar por encima.</p>
+                </div>
+
+                <div class="lg-setting-row" style="margin-top:.75rem">
+                    <div class="lg-row-head">
+                        <span class="lg-label">Dispersión de color</span>
+                        <button class="lg-reset" data-lg-reset="dis" aria-label="Restablecer dispersión">Restablecer</button>
+                    </div>
+                    <input id="lg-dis" type="range" min="0" max="2.5" step="0.05" value="1" aria-label="Dispersión de color">
+                    <div class="lg-row-head" style="margin-top:.25rem"><span class="lg-value" id="lg-dis-out">1.00×</span><span></span></div>
+                    <p class="lg-desc">Aberración cromática rojo/azul sobre el ícono dentro de la gota.</p>
+                </div>
+
+                <div class="lg-setting-row" style="margin-top:.75rem">
+                    <div class="lg-row-head">
+                        <span class="lg-label">Reflejo de luz</span>
+                        <button class="lg-reset" data-lg-reset="glr" aria-label="Restablecer reflejo">Restablecer</button>
+                    </div>
+                    <input id="lg-glr" type="range" min="0" max="1.5" step="0.05" value="1" aria-label="Reflejo de luz">
+                    <div class="lg-row-head" style="margin-top:.25rem"><span class="lg-value" id="lg-glr-out">1.00×</span><span></span></div>
+                    <p class="lg-desc">Destello radial al tocar y anillo de luz fino alrededor de la gota.</p>
+                </div>
+            </div>
+
+            <!-- Atajos y Google Sheets -->
+            <div class="card">
+                <div class="card-head" style="margin-bottom:0">
+                    <h3 class="card-title">Atajos y Google Sheets</h3>
+                </div>
             </div>
 
             <!-- Conexión -->
@@ -764,13 +905,26 @@ function semanaDe(ym, dia) {
         </section>
     </main>
 
-    <!-- Tab bar -->
-    <nav class="tabbar glass" aria-label="Navegación principal">
-        <div class="tabbar-in">
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-active press"><i class="fa-solid fa-chart-pie"></i><span>Resumen</span></button>
-            <button onclick="switchTab('register')" id="tab-btn-register" class="press"><i class="fa-solid fa-circle-plus"></i><span>Registrar</span></button>
-            <button onclick="switchTab('history')" id="tab-btn-history" class="press"><i class="fa-solid fa-receipt"></i><span>Historial</span></button>
-            <button onclick="switchTab('shortcuts')" id="tab-btn-shortcuts" class="press"><i class="fa-solid fa-bolt"></i><span>Atajos</span></button>
+    <!-- Tab bar Liquid Glass (iOS 26) -->
+    <nav class="lg-bar" id="lg-bar" aria-label="Navegación principal">
+        <!-- Capa base: pestañas reales, clicables -->
+        <div class="lg-tabs lg-base" id="lg-base" role="tablist">
+            <button class="lg-tab" role="tab" data-tab="dashboard" id="tab-btn-dashboard"><i class="fa-solid fa-chart-pie"></i><span>Resumen</span></button>
+            <button class="lg-tab" role="tab" data-tab="register" id="tab-btn-register"><i class="fa-solid fa-circle-plus"></i><span>Registrar</span></button>
+            <button class="lg-tab" role="tab" data-tab="history" id="tab-btn-history"><i class="fa-solid fa-receipt"></i><span>Historial</span></button>
+            <button class="lg-tab" role="tab" data-tab="settings" id="tab-btn-settings"><i class="fa-solid fa-gear"></i><span>Ajustes</span></button>
+        </div>
+        <!-- La gota de vidrio con sus 3 capas (rojo/azul/blanco) y glare/rim -->
+        <div class="lg-lens" id="lg-lens">
+            <div class="lg-clip">
+                <div class="lg-clone">
+                    <div class="lg-tabs lg-lens-tabs lg-ch r" id="lg-chR" aria-hidden="true"></div>
+                    <div class="lg-tabs lg-lens-tabs lg-ch b" id="lg-chB" aria-hidden="true"></div>
+                    <div class="lg-tabs lg-lens-tabs lg-ch" id="lg-clone" aria-hidden="true"></div>
+                </div>
+                <div class="lg-glare" id="lg-glare"></div>
+            </div>
+            <div class="lg-rim" id="lg-rim"></div>
         </div>
     </nav>
 
@@ -1229,15 +1383,25 @@ function semanaDe(ym, dia) {
         }
 
         function switchTab(tabName) {
-            const tabs = ['dashboard', 'register', 'history', 'shortcuts'];
+            const tabs = ['dashboard', 'register', 'history', 'settings'];
             tabs.forEach(t => {
-                $(`tab-${t}`).classList.add('hidden');
-                $(`tab-btn-${t}`).classList.remove('tab-active');
+                const tabEl = $(`tab-${t}`);
+                if (tabEl) tabEl.classList.add('hidden');
+                const btn = $(`tab-btn-${t}`);
+                if (btn) btn.classList.remove('tab-active');
             });
 
-            $(`tab-${tabName}`).classList.remove('hidden');
-            $(`tab-btn-${tabName}`).classList.add('tab-active');
+            const active = $(`tab-${tabName}`);
+            if (active) active.classList.remove('hidden');
+            const activeBtn = $(`tab-btn-${tabName}`);
+            if (activeBtn) activeBtn.classList.add('tab-active');
             window.scrollTo(0, 0);
+
+            // Mueve la gota Liquid Glass a la pestaña activa
+            if (window.lgAPI && typeof window.lgAPI.select === 'function') {
+                const idx = tabs.indexOf(tabName);
+                if (idx >= 0) window.lgAPI.select(idx);
+            }
 
             if (tabName === 'dashboard') renderDashboard();
             if (tabName === 'history') renderHistoryTable();
@@ -1737,6 +1901,280 @@ function semanaDe(ym, dia) {
 
             showToast('Copiado', 'Código de Google Apps Script copiado al portapapeles.');
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           Barra de pestañas Liquid Glass (iOS 26)
+           - Gota de vidrio con magnificación por desplazamiento
+           - Aberración cromática (3 capas rojo/azul/blanco)
+           - Glare radial + anillo cónico (rim) que siguen al dedo y la posición
+           - Física de resorte: rigidez 240, amortiguación 21 (rebote leve)
+           - Sliders de Ajustes persistidos en localStorage
+        ═══════════════════════════════════════════════════════════════ */
+        (function liquidGlassBar() {
+            var bar = document.getElementById('lg-bar');
+            if (!bar) return;
+            var lens = document.getElementById('lg-lens');
+            var base = document.getElementById('lg-base');
+            var clone = document.getElementById('lg-clone');
+            var chR = document.getElementById('lg-chR');
+            var chB = document.getElementById('lg-chB');
+            var lensClone = clone.parentNode;
+            var glare = document.getElementById('lg-glare');
+            var rim = document.getElementById('lg-rim');
+
+            // Lee el HTML base y lo replica en las 3 capas internas
+            function buildClones() {
+                // Limpia estilos inline del base para que el clon no herede opacidades dinámicas
+                base.querySelectorAll('.lg-tab').forEach(function (t) { t.style.opacity = ''; });
+                var html = base.innerHTML;
+                // Los clones no son interactivos
+                clone.innerHTML = html;
+                chR.innerHTML = html;
+                chB.innerHTML = html;
+                // Les quita el id duplicado para no romper el DOM
+                [clone, chR, chB].forEach(function (el) {
+                    el.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); });
+                    el.querySelectorAll('button').forEach(function (b) { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); });
+                    // Fuerza opacity 1 en los íconos del clon (ignora estilos inline heredados)
+                    el.querySelectorAll('.lg-tab').forEach(function (t) { t.style.opacity = '1'; t.style.color = ''; });
+                });
+            }
+            buildClones();
+            var baseTabs = base.querySelectorAll('.lg-tab');
+
+            // Estado del resorte
+            var N = 4;
+            var W = 0, H = 0, tabW = 0, lensH = 0, PAD = 4;
+            var current = 0, x = 0, vx = 0, target = 0;
+            var grow = 0, vg = 0, growTarget = 0;
+            var dragging = false, raf = 0, last = 0;
+            var mag = 1.3, dis = 1, glr = 1, flash = 0, gx = 0.3, gy = 0.15;
+            var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var K = 240, C = reduce ? 40 : 21;
+
+            function measure() {
+                W = bar.clientWidth; H = bar.clientHeight;
+                tabW = (W - PAD * 2) / N; lensH = H - PAD * 2;
+                [base, clone, chR, chB].forEach(function (t) {
+                    t.style.width = W + 'px';
+                    t.style.height = H + 'px';
+                });
+                lens.style.width = tabW + 'px';
+                lens.style.height = lensH + 'px';
+                lensClone.style.width = W + 'px';
+                lensClone.style.height = H + 'px';
+            }
+            function xFor(i) { return PAD + i * tabW; }
+            function clampX(px) { return Math.max(PAD, Math.min(W - PAD - tabW, px)); }
+            function indexAt(px) { return Math.max(0, Math.min(N - 1, Math.floor((px - PAD) / tabW))); }
+
+            function localX(e) { var r = bar.getBoundingClientRect(); return (e.clientX - r.left) * (W / r.width); }
+            function updateGlare(e) {
+                var r = bar.getBoundingClientRect();
+                var px = localX(e), py = (e.clientY - r.top) * (H / r.height);
+                gx = Math.max(0.05, Math.min(0.95, (px - x) / tabW));
+                gy = Math.max(0.05, Math.min(0.6, (py - PAD) / lensH));
+            }
+
+            function render() {
+                var stretch = Math.min(Math.abs(vx) / 2600, 0.28);
+                var sx = (1 + grow * 0.14) * (1 + stretch);
+                var sy = (1 + grow * 0.24) * (1 - stretch * 0.4);
+                lens.style.transform = 'translate3d(' + x + 'px,0,0) scale(' + sx + ',' + sy + ')';
+                bar.style.transform = 'scale(' + (1 + grow * 0.03) + ')';
+                var ca = dis * (0.45 + grow * 0.9 + Math.min(Math.abs(vx) / 1400, 1.6));
+                chR.style.transform = 'translate(' + (-ca) + 'px,' + (-ca * 0.35) + 'px)';
+                chB.style.transform = 'translate(' + ca + 'px,' + (ca * 0.35) + 'px)';
+                glare.style.setProperty('--gx', (gx * 100) + '%');
+                glare.style.setProperty('--gy', (gy * 100) + '%');
+                glare.style.opacity = String(Math.min(1, glr * (0.12 + grow * 0.5 + flash * 0.8)));
+                rim.style.setProperty('--ang', (-35 + (x / Math.max(W, 1)) * 70) + 'deg');
+                rim.style.opacity = String(Math.min(1, 0.55 + glr * 0.35 + grow * 0.2));
+                // El clon interno contrarresta la escala de la gota para mantener la magnificación del slider
+                var s = mag * (1 + grow * 0.1);
+                lensClone.style.transformOrigin = (tabW / 2) + 'px ' + (lensH / 2) + 'px';
+                lensClone.style.transform = 'scale(' + (s / sx) + ',' + (s / sy) + ') translate(' + (-x) + 'px,' + (-PAD) + 'px)';
+                // Baja opacidad de los íconos base cuando la gota pasa por encima
+                var cx = x + tabW / 2;
+                for (var i = 0; i < baseTabs.length; i++) {
+                    var d = Math.abs(cx - (xFor(i) + tabW / 2)) / tabW;
+                    // Atenuación más suave: de 0.55 (base) a 0.05 (bajo la gota)
+                    var baseOpacity = 0.55;
+                    var fadeAmount = 0.5 * Math.max(0, 1 - d);
+                    baseTabs[i].style.opacity = String(Math.max(0.05, baseOpacity - fadeAmount));
+                }
+            }
+            function step(t) {
+                var dt = Math.min((t - last) / 1000 || 0.016, 0.034); last = t;
+                var ax = -K * (x - target) - C * vx; vx += ax * dt; x += vx * dt;
+                var ag = -300 * (grow - growTarget) - 24 * vg; vg += ag * dt; grow += vg * dt;
+                flash *= Math.exp(-dt * 4.5);
+                render();
+                var still = Math.abs(vx) < 0.5 && Math.abs(x - target) < 0.1
+                         && Math.abs(vg) < 0.01 && Math.abs(grow - growTarget) < 0.002 && flash < 0.01;
+                if (still && !dragging) {
+                    x = target; grow = growTarget; vx = 0; vg = 0; render();
+                    raf = 0; return;
+                }
+                raf = requestAnimationFrame(step);
+            }
+            function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } }
+
+            function selectTab(i) {
+                if (i === current) return;
+                current = i;
+                target = xFor(i);
+                // Limpia estados visuales de los botones
+                baseTabs.forEach(function (b, k) {
+                    b.classList.toggle('tab-active', k === i);
+                    b.setAttribute('aria-selected', k === i ? 'true' : 'false');
+                });
+                // Dispara el switchTab de la app principal (data-tab)
+                var tabName = baseTabs[i].getAttribute('data-tab');
+                if (tabName && typeof window.switchTab === 'function') {
+                    window.switchTab(tabName);
+                }
+                kick();
+            }
+            function select(i) {
+                // Para uso externo (no dispara switchTab, solo mueve la gota)
+                current = i;
+                target = xFor(i);
+                baseTabs.forEach(function (b, k) {
+                    b.classList.toggle('tab-active', k === i);
+                    b.setAttribute('aria-selected', k === i ? 'true' : 'false');
+                });
+                kick();
+            }
+
+            // Pointer events (touch + ratón unificados)
+            var downX = 0;
+            bar.addEventListener('pointerdown', function (e) {
+                if (e.target.closest('.lg-tab') && !e.target.closest('.lg-lens')) {
+                    // Click directo en una pestaña base: selecciona
+                    var btn = e.target.closest('.lg-tab');
+                    var idx = Array.prototype.indexOf.call(baseTabs, btn);
+                    if (idx >= 0) { selectTab(idx); e.preventDefault(); return; }
+                }
+                // Sino: inicia arrastre de la gota
+                dragging = true; downX = e.clientX;
+                bar.setPointerCapture(e.pointerId);
+                growTarget = 1; flash = 1;
+                target = clampX(localX(e) - tabW / 2);
+                updateGlare(e);
+                kick();
+            });
+            bar.addEventListener('pointermove', function (e) {
+                if (!dragging) return;
+                if (Math.abs(e.clientX - downX) > 4) {
+                    target = clampX(localX(e) - tabW / 2);
+                }
+                updateGlare(e);
+                kick();
+            });
+            function release(e) {
+                if (!dragging) return;
+                dragging = false; growTarget = 0; gx = 0.3; gy = 0.15;
+                var i = indexAt(clampX(localX(e) - tabW / 2) + tabW / 2);
+                selectTab(i);
+                kick();
+            }
+            bar.addEventListener('pointerup', release);
+            bar.addEventListener('pointercancel', release);
+
+            // Teclado: flechas izq/der
+            bar.addEventListener('keydown', function (e) {
+                var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+                if (!d) return;
+                e.preventDefault();
+                var i = Math.max(0, Math.min(N - 1, current + d));
+                selectTab(i);
+                baseTabs[i].focus();
+            });
+
+            // ───────── Sliders en Ajustes ─────────
+            var LS_KEY = 'gp_liquid_glass_prefs';
+            var DEFAULTS = { mag: 1.3, dis: 1, glr: 1 };
+            function loadPrefs() {
+                try {
+                    var raw = localStorage.getItem(LS_KEY);
+                    if (!raw) return;
+                    var p = JSON.parse(raw);
+                    if (typeof p.mag === 'number') mag = p.mag;
+                    if (typeof p.dis === 'number') dis = p.dis;
+                    if (typeof p.glr === 'number') glr = p.glr;
+                } catch (e) { /* ignore */ }
+            }
+            function savePrefs() {
+                try { localStorage.setItem(LS_KEY, JSON.stringify({ mag: mag, dis: dis, glr: glr })); }
+                catch (e) { /* ignore */ }
+            }
+            function syncSliderUI(id, val, outId, fmt) {
+                var el = document.getElementById(id), out = document.getElementById(outId);
+                if (el) el.value = String(val);
+                if (out) out.textContent = fmt(val);
+            }
+            function refreshSettingsUI() {
+                syncSliderUI('lg-mag', mag, 'lg-mag-out', function (v) { return v.toFixed(2) + '×'; });
+                syncSliderUI('lg-dis', dis, 'lg-dis-out', function (v) { return v.toFixed(2) + '×'; });
+                syncSliderUI('lg-glr', glr, 'lg-glr-out', function (v) { return v.toFixed(2) + '×'; });
+            }
+            function bindSlider(id, outId, setter, fmt) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', function (e) {
+                    var v = parseFloat(e.target.value);
+                    var out = document.getElementById(outId);
+                    if (out) out.textContent = fmt(v);
+                    setter(v); render(); savePrefs();
+                });
+            }
+            function initSliders() {
+                bindSlider('lg-mag', 'lg-mag-out', function (v) { mag = v; }, function (v) { return v.toFixed(2) + '×'; });
+                bindSlider('lg-dis', 'lg-dis-out', function (v) { dis = v; flash = 1; kick(); }, function (v) { return v.toFixed(2) + '×'; });
+                bindSlider('lg-glr', 'lg-glr-out', function (v) { glr = v; flash = 1; kick(); }, function (v) { return v.toFixed(2) + '×'; });
+                document.querySelectorAll('[data-lg-reset]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var key = btn.getAttribute('data-lg-reset');
+                        var val = DEFAULTS[key];
+                        if (key === 'mag') mag = val;
+                        else if (key === 'dis') dis = val;
+                        else if (key === 'glr') glr = val;
+                        refreshSettingsUI(); render(); savePrefs();
+                        flash = 1; kick();
+                    });
+                });
+            }
+
+            // ───────── Init ─────────
+            function init() {
+                loadPrefs();
+                measure();
+                refreshSettingsUI();
+                initSliders();
+                x = target = xFor(current);
+                baseTabs.forEach(function (b, k) {
+                    b.classList.toggle('tab-active', k === current);
+                    b.setAttribute('aria-selected', k === current ? 'true' : 'false');
+                });
+                render();
+            }
+            window.addEventListener('resize', function () {
+                measure();
+                x = target = xFor(current);
+                render();
+            });
+            // Reprocesa cuando Font Awesome termina de cargar los íconos
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function () { measure(); render(); });
+            }
+            // Pequeño delay por si Font Awesome carga después
+            setTimeout(function () { buildClones(); baseTabs = base.querySelectorAll('.lg-tab'); measure(); render(); }, 600);
+            init();
+
+            // API pública para que switchTab() de la app mueva la gota
+            window.lgAPI = { select: select, selectTab: selectTab, render: render, measure: measure };
+        })();
     </script>
 </body>
 </html>
