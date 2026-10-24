@@ -563,6 +563,13 @@
                     </select>
                     <select id="filter-category" onchange="renderHistoryTable()" aria-label="Filtrar por categoría"></select>
                 </div>
+                <select id="filter-sort" onchange="onHistSortChange()" aria-label="Ordenar historial">
+                    <option value="date-desc">Orden: fecha · más reciente primero</option>
+                    <option value="date-asc">Orden: fecha · más antiguo primero</option>
+                    <option value="entry">Orden: como los ingresé</option>
+                    <option value="amt-desc">Orden: monto · mayor a menor</option>
+                    <option value="amt-asc">Orden: monto · menor a mayor</option>
+                </select>
             </div>
 
             <div class="card" style="padding-top:.5rem;padding-bottom:.5rem">
@@ -1834,6 +1841,11 @@ function semanaDe(ym, dia) {
             return t + (item.time ? ' · ' + item.time : '');
         }
 
+        function onHistSortChange() {
+            try { localStorage.setItem('gp-hist-sort', $('filter-sort').value); } catch (e) {}
+            renderHistoryTable();
+        }
+
         function renderHistoryTable() {
             const body = $('history-table-body');
             const search = $('filter-search').value.toLowerCase();
@@ -1846,6 +1858,27 @@ function semanaDe(ym, dia) {
                 const matchCategory = categoryFilter === 'ALL' || e.category === categoryFilter;
                 return matchSearch && matchMethod && matchCategory;
             });
+
+            // Orden elegido (se recuerda en el dispositivo). Por defecto: fecha y hora del gasto, más reciente primero.
+            const sortEl = $('filter-sort');
+            if (sortEl && !sortEl.dataset.init) {
+                sortEl.dataset.init = '1';
+                let saved = 'date-desc';
+                try { saved = localStorage.getItem('gp-hist-sort') || 'date-desc'; } catch (e) {}
+                if ([...sortEl.options].some(o => o.value === saved)) sortEl.value = saved;
+            }
+            const sortMode = sortEl ? sortEl.value : 'date-desc';
+            const dkey = e => String(e.date || '') + ' ' + String(e.time || '00:00').padStart(5, '0');
+            if (sortMode !== 'entry') {
+                const idx = new Map(filtered.map((e, i) => [e, i]));
+                const cmp = {
+                    'date-desc': (x, y) => dkey(y).localeCompare(dkey(x)),
+                    'date-asc':  (x, y) => dkey(x).localeCompare(dkey(y)),
+                    'amt-desc':  (x, y) => (Number(y.amount) || 0) - (Number(x.amount) || 0),
+                    'amt-asc':   (x, y) => (Number(x.amount) || 0) - (Number(y.amount) || 0)
+                }[sortMode] || (() => 0);
+                filtered.sort((x, y) => cmp(x, y) || (idx.get(x) - idx.get(y)));
+            }
 
             if (filtered.length === 0) {
                 body.innerHTML = '<p class="empty">No se encontraron gastos.</p>';
