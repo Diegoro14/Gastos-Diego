@@ -131,13 +131,13 @@
 
         /* ───────── Tab bar · Liquid Glass v3 ───────── */
         :root {
-            --lg-glass: rgba(255,255,255,.78); --lg-ink: var(--tint); --lg-edge: rgba(0,0,0,.10);
+            --lg-glass: rgba(255,255,255,.34); --lg-blur: 2px; --lg-txt-shadow: rgba(0,0,0,.2); --lg-ink: var(--tint); --lg-edge: rgba(0,0,0,.10);
             --lg-sink: rgba(0,0,0,.10); --lg-sink2: rgba(0,0,0,.06); --lg-vig: rgba(0,0,0,.05); --lg-cast: rgba(0,0,0,.18);
             --lg-blend: normal; --lg-ca-op: .6; --lg-line: rgba(0,0,0,.35);
             --lg-flat: rgba(0,0,0,.09); --lg-fg: #0b0b0f;
         }
         html.dark {
-            --lg-glass: rgba(90,90,94,.55); --lg-ink: var(--tint); --lg-edge: rgba(255,255,255,.14);
+            --lg-glass: rgba(40,40,44,.26); --lg-txt-shadow: rgba(0,0,0,.45); --lg-ink: var(--tint); --lg-edge: rgba(255,255,255,.14);
             --lg-sink: rgba(0,0,0,.4); --lg-sink2: rgba(0,0,0,.28); --lg-vig: rgba(0,0,0,.16); --lg-cast: rgba(0,0,0,.4);
             --lg-blend: screen; --lg-ca-op: 1; --lg-line: rgba(0,0,0,.6);
             --lg-flat: rgba(0,0,0,.5); --lg-fg: #ffffff;
@@ -148,7 +148,9 @@
             will-change: transform; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
         }
         .lg-bg, .lg-cast, .lg-edge { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
-        .lg-bg { background: var(--lg-glass); -webkit-backdrop-filter: blur(7px) saturate(1.5); backdrop-filter: blur(7px) saturate(1.5); }
+        .lg-bg { background: var(--lg-glass); -webkit-backdrop-filter: blur(var(--lg-blur, 2px)) saturate(1.6); backdrop-filter: blur(var(--lg-blur, 2px)) saturate(1.6); }
+        /* Transparencia estilo iOS 26 / WhatsApp: se ve el contenido por detrás, con poco desenfoque */
+        .tabbar .lg-tabs, .lg-bar .lg-tabs { text-shadow: 0 0 6px var(--lg-txt-shadow); }
         .lg-cast { box-shadow: 0 10px 30px var(--lg-cast); }
         .lg-edge { width: 100%; height: 100%; overflow: visible; }
         .lg-edge polygon { fill: none; stroke: var(--lg-edge); stroke-width: 1; vector-effect: non-scaling-stroke; }
