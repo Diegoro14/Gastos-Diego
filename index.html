@@ -300,6 +300,66 @@
         .tx-date { font-size: .75rem; color: var(--label2); letter-spacing: .01em; }
         /* Texto largo: se desplaza solo para poder leerlo completo */
         .tx-title.mq, .tx-meta.mq { text-overflow: clip; }
+
+        /* Historial agrupado por mes */
+        .mon-tools { display: flex; justify-content: flex-end; gap: 1rem; margin: -.25rem .5rem -.25rem; }
+        .mon-link { font-size: .8125rem; font-weight: 600; color: var(--blue); padding: .25rem 0; }
+        .mon { border-bottom: .5px solid var(--sep); }
+        .mon:last-child { border-bottom: 0; }
+        .mon-head { display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; padding: .875rem 0; }
+        .mon-chev { width: 1rem; font-size: .8125rem; color: var(--label2); transition: transform 250ms cubic-bezier(.32,.72,0,1); flex: none; }
+        .mon.open .mon-chev { transform: rotate(90deg); }
+        .mon-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .mon-name { font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.02em; }
+        .mon-sub { font-size: .8125rem; color: var(--label2); letter-spacing: 0; }
+        .mon-total { font-size: 1.0625rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.015em; flex: none; }
+        .mon-body { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 300ms cubic-bezier(.32,.72,0,1), visibility 0s linear 300ms; }
+        .mon.open .mon-body { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 300ms cubic-bezier(.32,.72,0,1), visibility 0s; }
+        .mon-inner { overflow: hidden; min-height: 0; }
+        .mon-inner .tx:last-child { border-bottom: 0; }
+        @media (prefers-reduced-motion: reduce) { .mon-body, .mon-chev { transition: none !important; } }
+        /* Ajustes: secciones colapsables */
+        .acc-head { display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; padding: 0; }
+        .acc-ico { width: 2rem; height: 2rem; border-radius: .5rem; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .9375rem; flex: none; }
+        .acc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .acc-main .card-sub { margin-top: .0625rem; }
+        .acc-chev { width: 1rem; font-size: .8125rem; color: var(--label2); transition: transform 250ms cubic-bezier(.32,.72,0,1); flex: none; }
+        .acc.open .acc-chev { transform: rotate(90deg); }
+        .acc-body { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 300ms cubic-bezier(.32,.72,0,1), visibility 0s linear 300ms; }
+        .acc.open .acc-body { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 300ms cubic-bezier(.32,.72,0,1), visibility 0s; }
+        .acc-inner { overflow: hidden; min-height: 0; }
+        .acc-pad { padding-top: 1rem; }
+        @media (prefers-reduced-motion: reduce) { .acc-body, .acc-chev { transition: none !important; } }
+
+        /* Porcentaje (calculadora de descuentos) */
+        #tab-percent .pc-cap { font-size: .8125rem; letter-spacing: .01em; text-transform: uppercase; color: var(--label2); margin: 0 16px 8px; font-weight: 500; }
+        #tab-percent .pc-card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; }
+        #tab-percent .pc-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; gap: 12px; }
+        #tab-percent .pc-row + .pc-row { border-top: .5px solid var(--sep); }
+        #tab-percent .pc-row label { font-size: 1.0625rem; }
+        #tab-percent .pc-field { display: flex; align-items: baseline; gap: 4px; justify-content: flex-end; flex: 1; }
+        #tab-percent .pc-field span { color: var(--label2); font-size: 1.0625rem; }
+        #tab-percent .pc-field input {
+            width: 100%; max-width: 11rem; min-height: 0; text-align: right; border: 0; outline: 0; border-radius: 0; box-shadow: none;
+            background: transparent; color: var(--blue); font: inherit; font-size: max(16px, 1.0625rem); font-weight: 600;
+            font-variant-numeric: tabular-nums; padding: 0; caret-color: var(--blue);
+        }
+        #tab-percent .pc-field input::placeholder { color: var(--label2); font-weight: 400; }
+        #tab-percent .pc-field input:focus { box-shadow: none; }
+        #tab-percent .pc-btn {
+            display: block; width: 100%; appearance: none; border: 0; cursor: pointer;
+            background: var(--blue); color: #fff; font: inherit; font-size: 1.375rem; font-weight: 700; letter-spacing: -.01em;
+            padding: 16px; border-radius: 16px; margin: 0 0 28px;
+            transition: transform .1s ease-out, background .1s ease-out;
+        }
+        #tab-percent .pc-btn:active { transform: scale(.97); background: #0062cc; }
+        html.dark #tab-percent .pc-btn:active { background: #0066d6; }
+        #tab-percent .pc-detail .pc-row span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+        #tab-percent .pc-detail .orig { color: var(--label2); }
+        #tab-percent .pc-detail .disc { color: var(--red); }
+        #tab-percent .pc-hero { text-align: center; padding: 24px 16px 28px; }
+        #tab-percent .pc-hero small { display: block; color: var(--label); font-size: .9375rem; font-weight: 700; margin-bottom: 4px; }
+        #tab-percent .pc-total { font-size: clamp(2.5rem, 12vw, 3.5rem); line-height: 1.05; letter-spacing: -.03em; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; display: inline-block; }
         .mq-inner { display: inline-block; white-space: nowrap; }
         .mq .mq-inner { animation: mq var(--mq-dur, 6s) ease-in-out infinite alternate; animation-play-state: paused; will-change: transform; }
         .mq.on .mq-inner { animation-play-state: running; }
@@ -587,7 +647,12 @@
                 </select>
             </div>
 
-            <div class="card" style="padding-top:.5rem;padding-bottom:.5rem">
+            <div class="mon-tools">
+                <button onclick="setAllMonths(false)" class="mon-link press">Colapsar todos</button>
+                <button onclick="setAllMonths(true)" class="mon-link press">Expandir todos</button>
+            </div>
+
+            <div class="card" style="padding:.25rem 1.25rem">
                 <div id="history-table-body"></div>
             </div>
         </section>
@@ -599,49 +664,67 @@
                 <p class="card-sub">Conecta tu planilla y registra gastos desde el iPhone.</p>
             </div>
 
+            <div class="mon-tools">
+                <button onclick="setAllAcc(false)" class="mon-link press">Colapsar todos</button>
+                <button onclick="setAllAcc(true)" class="mon-link press">Expandir todos</button>
+            </div>
+
             <!-- Conexión -->
-            <div class="card" id="sheets-config-banner">
-                <div class="card-head" style="margin-bottom:0">
-                    <div>
-                        <h3 class="card-title">Conexión con Google Sheets</h3>
-                        <p class="card-sub" id="sync-status-desc">Vincula la URL de tu Google Apps Script para sincronizar en la nube.</p>
-                    </div>
-                    <span id="sync-status-badge" class="pill warn">Modo local</span>
-                </div>
+            <div class="card acc" data-acc="conexion" id="sheets-config-banner">
+                <button type="button" class="acc-head press" onclick="toggleAcc('conexion')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--blue)"><i class="fa-solid fa-cloud"></i></span>
+                    <span class="acc-main"><span class="card-title">Conexión con Google Sheets</span><span class="card-sub">Sincroniza tu planilla en la nube</span></span>
+                    <span id="sync-status-badge" class="pill warn">Modo local</span><i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+                <p class="card-sub" id="sync-status-desc" style="margin-bottom:.75rem">Vincula la URL de tu Google Apps Script para sincronizar en la nube.</p>
                 <div class="conn-row">
                     <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec" autocapitalize="off" autocorrect="off">
                     <button onclick="saveScriptUrl()" class="btn btn-primary press">Guardar URL</button>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Arquitectura -->
-            <div class="card">
-                <h3 class="card-title" style="margin-bottom:1rem">Cómo fluyen tus datos</h3>
+            <div class="card acc" data-acc="flujo">
+                <button type="button" class="acc-head press" onclick="toggleAcc('flujo')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--green)"><i class="fa-solid fa-route"></i></span>
+                    <span class="acc-main"><span class="card-title">Cómo fluyen tus datos</span><span class="card-sub">Atajo ➔ Google Sheet ➔ esta app</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
                 <div class="flow">
                     <div class="flow-step"><span class="flow-num" style="background:var(--orange)">1</span><div><b>Atajo de iPhone</b><p>Pides el monto a Siri o lo ejecutas desde Wallet. Envía un POST directo a tu Google Apps Script, sin abrir nada.</p></div></div>
                     <div class="flow-step"><span class="flow-num" style="background:var(--green)">2</span><div><b>Google Sheet</b><p>Apps Script agrega la fila al instante y la hoja recalcula sus fórmulas, tablas dinámicas y gráficos.</p></div></div>
                     <div class="flow-step"><span class="flow-num" style="background:var(--blue)">3</span><div><b>Esta app</b><p>Al abrirla o sincronizar, lee tu planilla (<span class="kbd">doGet</span>) y muestra tus totales y gráficos en pesos chilenos.</p></div></div>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Simulador -->
-            <div class="card">
-                <h3 class="card-title">Simulador de entrada desde iPhone</h3>
-                <p class="card-sub" style="margin-bottom:.875rem">Prueba cómo Siri o Atajos envían un gasto sin errores de formato.</p>
+            <div class="card acc" data-acc="simulador">
+                <button type="button" class="acc-head press" onclick="toggleAcc('simulador')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--orange)"><i class="fa-solid fa-flask"></i></span>
+                    <span class="acc-main"><span class="card-title">Simulador de entrada desde iPhone</span><span class="card-sub">Prueba cómo llega un gasto</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+                                <p class="card-sub" style="margin-bottom:.875rem">Prueba cómo Siri o Atajos envían un gasto sin errores de formato.</p>
                 <div style="display:grid;gap:.5rem">
                     <button onclick="simulateShortcut('Apple Pay', '15.000', 'Jumbo Supermercado', 'Supermercado')" class="btn btn-gray press"><i class="fa-brands fa-apple"></i> Apple Pay $15.000 (Jumbo)</button>
                     <button onclick="simulateShortcut('BancoEstado', '8.500', 'Carga Bip / Metro', 'Transporte')" class="btn btn-tinted press">💳 CuentaRUT BancoEstado $8.500</button>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Paso 1 -->
-            <div class="card">
-                <div class="card-head">
-                    <div>
-                        <h3 class="card-title">Paso 1 · Configura Apps Script</h3>
-                        <p class="card-sub">Convierte tu planilla en un backend seguro.</p>
-                    </div>
-                </div>
+            <div class="card acc" data-acc="paso1">
+                <button type="button" class="acc-head press" onclick="toggleAcc('paso1')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--blue)"><i class="fa-solid fa-code"></i></span>
+                    <span class="acc-main"><span class="card-title">Paso 1 · Configura Apps Script</span><span class="card-sub">Convierte tu planilla en un backend seguro</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
 
                 <ol class="steps" style="margin-bottom:1rem">
                     <li>Crea una planilla en <strong>Google Sheets</strong> con estas columnas en la fila 1: <strong>Fecha, Hora, Descripción, Categoría, Medio de Pago, Monto, Estado</strong>.</li>
@@ -800,22 +883,34 @@ function semanaDe(ym, dia) {
                         <li>Pégala arriba, en "Conexión con Google Sheets".</li>
                     </ol>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Paso 2 -->
-            <div class="card">
-                <h3 class="card-title">Paso 2 · Gráficos automáticos en Sheets</h3>
-                <p class="card-sub" style="margin-bottom:.875rem">Cada fila nueva recalcula fórmulas y gráficos sin que hagas nada.</p>
+            <div class="card acc" data-acc="paso2">
+                <button type="button" class="acc-head press" onclick="toggleAcc('paso2')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--green)"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span class="acc-main"><span class="card-title">Paso 2 · Gráficos automáticos en Sheets</span><span class="card-sub">Tabla dinámica y gráficos</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+                                <p class="card-sub" style="margin-bottom:.875rem">Cada fila nueva recalcula fórmulas y gráficos sin que hagas nada.</p>
                 <div style="display:grid;gap:.5rem">
                     <div class="opt"><h4>1. Tabla dinámica</h4>Selecciona tus filas ➔ <strong>Insertar ➔ Tabla dinámica</strong>. Pon <span class="kbd">Categoría</span> en Filas y <span class="kbd">Monto</span> en Valores (SUMA).</div>
                     <div class="opt"><h4>2. Gráfico circular o de columnas</h4>Selecciona la tabla dinámica y elige <strong>Insertar ➔ Gráfico</strong>. Cada gasto nuevo actualiza totales y barras.</div>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Paso 3 -->
-            <div class="card">
-                <h3 class="card-title">Paso 3 · Atajo de iPhone</h3>
-                <p class="card-sub" style="margin-bottom:.875rem">Dos formas de enviar gastos a Sheets y a la app.</p>
+            <div class="card acc" data-acc="paso3">
+                <button type="button" class="acc-head press" onclick="toggleAcc('paso3')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--orange)"><i class="fa-solid fa-mobile-screen"></i></span>
+                    <span class="acc-main"><span class="card-title">Paso 3 · Atajo de iPhone</span><span class="card-sub">POST silencioso o abrir URL</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+                                <p class="card-sub" style="margin-bottom:.875rem">Dos formas de enviar gastos a Sheets y a la app.</p>
                 <div style="display:grid;gap:.5rem">
                     <div class="opt">
                         <h4 style="color:var(--green)">Opción A (recomendada): POST silencioso</h4>
@@ -832,12 +927,18 @@ function semanaDe(ym, dia) {
                         <div class="mono-box" style="margin-top:.5rem" id="shortcut-url-template">https://tu-app.com/index.html?amount=[Monto]&amp;desc=[Comercio]&amp;method=[Medio]&amp;category=Supermercado</div>
                     </div>
                 </div>
+                </div></div></div>
             </div>
 
             <!-- Ajustes de la barra de pestañas -->
-            <div class="card">
-                <h3 class="card-title">Barra de pestañas</h3>
-                <p class="card-sub" style="margin-bottom:.875rem">Ajusta el efecto de vidrio de la barra inferior. Los cambios se ven al instante y se guardan en este dispositivo.</p>
+            <div class="card acc" data-acc="barra">
+                <button type="button" class="acc-head press" onclick="toggleAcc('barra')" aria-expanded="false">
+                    <span class="acc-ico" style="background:var(--blue)"><i class="fa-solid fa-sliders"></i></span>
+                    <span class="acc-main"><span class="card-title">Barra de pestañas</span><span class="card-sub">Efecto de vidrio de la barra inferior</span></span>
+                    <i class="fa-solid fa-chevron-right acc-chev"></i>
+                </button>
+                <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+                                <p class="card-sub" style="margin-bottom:.875rem">Ajusta el efecto de vidrio de la barra inferior. Los cambios se ven al instante y se guardan en este dispositivo.</p>
                 <div style="display:grid;gap:.875rem">
                     <label class="field"><span class="lbl" style="display:flex;justify-content:space-between;gap:.5rem"><span>Magnificación de la lupa</span><output id="lg-mag-out" class="num">1.30×</output></span><input id="lg-mag" class="lg-range" type="range" min="1" max="1.8" step="0.01" value="1.3"></label>
                     <label class="field"><span class="lbl" style="display:flex;justify-content:space-between;gap:.5rem"><span>Dispersión de color</span><output id="lg-dis-out" class="num">1.00×</output></span><input id="lg-dis" class="lg-range" type="range" min="0" max="2.5" step="0.05" value="1"></label>
@@ -845,6 +946,53 @@ function semanaDe(ym, dia) {
                     <label class="field"><span class="lbl" style="display:flex;justify-content:space-between;gap:.5rem"><span>Distorsión de agua</span><output id="lg-wet-out" class="num">1.00×</output></span><input id="lg-wet" class="lg-range" type="range" min="0" max="2.5" step="0.05" value="1"></label>
                     <button type="button" class="btn btn-gray btn-sm press" id="lg-reset">Restablecer</button>
                 </div>
+                </div></div></div>
+            </div>
+        </section>
+
+        <!-- TAB 5: PORCENTAJE (calculadora de descuentos) -->
+        <section id="tab-percent" class="hidden stack view">
+            <div style="margin:.5rem .25rem 0">
+                <h2 class="section-title" style="margin:0">Porcentaje</h2>
+                <p class="card-sub">Calcula descuentos en pesos chilenos.</p>
+            </div>
+
+            <div class="pc-wrap">
+                <p class="pc-cap">Precio</p>
+                <section class="pc-card">
+                    <div class="pc-row">
+                        <label for="pc-monto">Precio original</label>
+                        <div class="pc-field">
+                            <input id="pc-monto" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="" aria-label="Precio original en pesos">
+                        </div>
+                    </div>
+                </section>
+
+                <p class="pc-cap">Descuento</p>
+                <section class="pc-card" style="margin-bottom:16px">
+                    <div class="pc-row">
+                        <label for="pc-pct">Porcentaje</label>
+                        <div class="pc-field">
+                            <input id="pc-pct" type="text" inputmode="decimal" autocomplete="off" placeholder="0" value="" aria-label="Porcentaje de descuento">
+                            <span>%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <button class="pc-btn" id="pc-calcular" type="button">Calcular ahorro</button>
+
+                <p class="pc-cap">Detalle</p>
+                <section class="pc-card pc-detail">
+                    <div class="pc-row"><span>Precio original</span><span class="orig" id="pc-orig">$0</span></div>
+                    <div class="pc-row"><span>Descuento (<span id="pc-pctTxt">0%</span>)</span><span class="disc" id="pc-disc">−$0</span></div>
+                </section>
+
+                <section class="pc-card" aria-live="polite">
+                    <div class="pc-hero">
+                        <small>TOTAL A PAGAR</small>
+                        <div class="pc-total" id="pc-total">$0</div>
+                    </div>
+                </section>
             </div>
         </section>
     </main>
@@ -865,6 +1013,7 @@ function semanaDe(ym, dia) {
                 <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-active press"><i class="fa-solid fa-chart-pie"></i><span>Resumen</span></button>
                 <button onclick="switchTab('register')" id="tab-btn-register" class="press"><i class="fa-solid fa-circle-plus"></i><span>Registrar</span></button>
                 <button onclick="switchTab('history')" id="tab-btn-history" class="press"><i class="fa-solid fa-receipt"></i><span>Historial</span></button>
+                <button onclick="switchTab('percent')" id="tab-btn-percent" class="press"><i class="fa-solid fa-percent"></i><span>Porcentaje</span></button>
                 <button onclick="switchTab('shortcuts')" id="tab-btn-shortcuts" class="press"><i class="fa-solid fa-gear"></i><span>Ajustes</span></button>
             </div>
             <div class="lg-lens lg-flat" id="lg-lens">
@@ -1544,7 +1693,7 @@ function semanaDe(ym, dia) {
         }
 
         function switchTab(tabName) {
-            const tabs = ['dashboard', 'register', 'history', 'shortcuts'];
+            const tabs = ['dashboard', 'register', 'history', 'percent', 'shortcuts'];
             tabs.forEach(t => {
                 $(`tab-${t}`).classList.add('hidden');
                 $(`tab-btn-${t}`).classList.remove('tab-active');
@@ -1960,7 +2109,7 @@ function semanaDe(ym, dia) {
                 return;
             }
 
-            body.innerHTML = filtered.map(item => `
+            const txHtml = item => `
                 <button class="tx press" onclick="openEditModal('${item.id}')">
                     <span class="tx-ico" style="--c:${catColor(item.category)}">${catEmoji(item.category)}</span>
                     <span class="tx-main">
@@ -1972,8 +2121,81 @@ function semanaDe(ym, dia) {
                         <span class="tx-date">${fmtShort(item)}</span>
                     </span>
                 </button>
-            `).join('');
+            `;
+
+            // Agrupar por mes (los meses van del más reciente al más antiguo, salvo "fecha · más antiguo primero")
+            const groups = new Map();
+            filtered.forEach(e => {
+                const k = /^\d{4}-\d{2}/.test(e.date || '') ? String(e.date).slice(0, 7) : 'sin-fecha';
+                if (!groups.has(k)) groups.set(k, []);
+                groups.get(k).push(e);
+            });
+            const keys = [...groups.keys()].sort((a, b) => {
+                if (a === 'sin-fecha') return 1;
+                if (b === 'sin-fecha') return -1;
+                return sortMode === 'date-asc' ? a.localeCompare(b) : b.localeCompare(a);
+            });
+
+            // Estado abierto/cerrado: lo que elegiste se recuerda; por defecto solo el mes actual (o el más reciente con gastos)
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem('gp-hist-months') || '{}') || {}; } catch (e) {}
+            const now = new Date();
+            const curKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const dated = keys.filter(k => k !== 'sin-fecha');
+            const defOpen = groups.has(curKey) ? curKey : ([...dated].sort().pop() || keys[0]);
+            const filtering = !!search || methodFilter !== 'ALL' || categoryFilter !== 'ALL';   // al buscar/filtrar se muestran todos los resultados
+
+            body.innerHTML = keys.map(k => {
+                const list = groups.get(k);
+                const total = list.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+                const isOpen = filtering ? true : (k in saved ? !!saved[k] : k === defOpen);
+                let label = 'Sin fecha';
+                if (k !== 'sin-fecha') {
+                    const [y, m] = k.split('-').map(Number);
+                    const mn = new Date(y, m - 1, 1).toLocaleDateString('es-CL', { month: 'long' });
+                    label = mn.charAt(0).toUpperCase() + mn.slice(1) + ' ' + y;
+                }
+                return `
+                <div class="mon${isOpen ? ' open' : ''}" data-key="${k}">
+                    <button class="mon-head press" onclick="toggleMonth('${k}')" aria-expanded="${isOpen}">
+                        <i class="fa-solid fa-chevron-right mon-chev"></i>
+                        <span class="mon-main">
+                            <span class="mon-name">${label}</span>
+                            <span class="mon-sub">${list.length} ${list.length === 1 ? 'gasto' : 'gastos'}</span>
+                        </span>
+                        <span class="mon-total">${money(total)}</span>
+                    </button>
+                    <div class="mon-body"><div class="mon-inner">${list.map(txHtml).join('')}</div></div>
+                </div>`;
+            }).join('');
             requestAnimationFrame(setupMarquees);
+        }
+
+        function toggleMonth(key) {
+            const el = document.querySelector('#history-table-body .mon[data-key="' + key + '"]');
+            if (!el) return;
+            const open = !el.classList.contains('open');
+            el.classList.toggle('open', open);
+            const hd = el.querySelector('.mon-head');
+            if (hd) hd.setAttribute('aria-expanded', open ? 'true' : 'false');
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem('gp-hist-months') || '{}') || {}; } catch (e) {}
+            saved[key] = open ? 1 : 0;
+            try { localStorage.setItem('gp-hist-months', JSON.stringify(saved)); } catch (e) {}
+            if (open) requestAnimationFrame(setupMarquees);
+        }
+
+        function setAllMonths(open) {
+            let saved = {};
+            try { saved = JSON.parse(localStorage.getItem('gp-hist-months') || '{}') || {}; } catch (e) {}
+            document.querySelectorAll('#history-table-body .mon').forEach(el => {
+                el.classList.toggle('open', open);
+                const hd = el.querySelector('.mon-head');
+                if (hd) hd.setAttribute('aria-expanded', open ? 'true' : 'false');
+                saved[el.dataset.key] = open ? 1 : 0;
+            });
+            try { localStorage.setItem('gp-hist-months', JSON.stringify(saved)); } catch (e) {}
+            if (open) requestAnimationFrame(setupMarquees);
         }
 
         // Desplazamiento automático de textos cortados (solo los que no caben; se pausa fuera de pantalla)
@@ -2079,6 +2301,93 @@ function semanaDe(ym, dia) {
 
             showToast('Copiado', 'Código de Google Apps Script copiado al portapapeles.');
         }
+
+        // Ajustes: secciones colapsables (el estado se recuerda en el dispositivo)
+        function accState() { try { return JSON.parse(localStorage.getItem('gp-acc') || '{}') || {}; } catch (e) { return {}; } }
+        function accSave(o) { try { localStorage.setItem('gp-acc', JSON.stringify(o)); } catch (e) {} }
+        function setAcc(el, open) {
+            el.classList.toggle('open', open);
+            const hd = el.querySelector('.acc-head');
+            if (hd) hd.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        function toggleAcc(key) {
+            const el = document.querySelector('.acc[data-acc="' + key + '"]');
+            if (!el) return;
+            const open = !el.classList.contains('open');
+            setAcc(el, open);
+            const st = accState(); st[key] = open ? 1 : 0; accSave(st);
+        }
+        function setAllAcc(open) {
+            const st = accState();
+            document.querySelectorAll('.acc').forEach(el => { setAcc(el, open); st[el.dataset.acc] = open ? 1 : 0; });
+            accSave(st);
+        }
+        (function initAcc() {
+            const st = accState();
+            document.querySelectorAll('.acc').forEach(el => setAcc(el, !!st[el.dataset.acc]));
+        })();
+
+        // Porcentaje: calculadora de descuentos (mismo cálculo y animación de resorte de la app original)
+        (() => {
+            const g = id => document.getElementById(id);
+            const monto = g('pc-monto'), pct = g('pc-pct'), btn = g('pc-calcular');
+            const totalEl = g('pc-total'), origEl = g('pc-orig'), discEl = g('pc-disc'), pctTxt = g('pc-pctTxt');
+            const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const clp = n => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 })
+                              .format(Math.round(Math.max(0, n)));
+
+            // Lee números con formato chileno (1.234,5)
+            const parseNum = s => parseFloat(String(s).replace(/[^\d,]/g, '').replace(',', '.'));
+
+            /* Número animado con resorte: parte del valor actual y se asienta sin rebote */
+            const setTotal = (() => {
+                let value = 0, target = 0, vel = 0, raf = 0, last = 0;
+                const k = 220, c = 2 * Math.sqrt(k);
+                const render = () => { totalEl.textContent = clp(value); };
+                const step = now => {
+                    const dt = Math.min((now - last) / 1000, 1 / 30); last = now;
+                    vel += (-k * (value - target) - c * vel) * dt;
+                    value += vel * dt;
+                    render();
+                    if (Math.abs(value - target) < .5 && Math.abs(vel) < .5) { value = target; vel = 0; render(); raf = 0; return; }
+                    raf = requestAnimationFrame(step);
+                };
+                return v => {
+                    target = v;
+                    if (reduce) { value = v; render(); return; }
+                    if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
+                };
+            })();
+
+            // Puntos de miles mientras escribes el precio
+            function formatMonto() {
+                const digits = monto.value.replace(/\D/g, '');
+                monto.value = digits ? '$' + Number(digits).toLocaleString('es-CL') : '';
+            }
+
+            function calcular() {
+                const base = parseNum(monto.value) || 0;
+                let p = parseNum(pct.value);
+                if (isNaN(p) || p < 0) p = 0;
+
+                const desc = base * p / 100;
+                const total = base - desc;
+
+                origEl.textContent = clp(base);
+                discEl.textContent = '−' + clp(desc);
+                pctTxt.textContent = (Number.isInteger(p) ? p : p.toString().replace('.', ',')) + '%';
+                setTotal(Math.round(total));
+            }
+
+            monto.addEventListener('input', formatMonto);
+            btn.addEventListener('click', calcular);
+            [monto, pct].forEach(el => el.addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); el.blur(); calcular(); }
+            }));
+
+            formatMonto(); calcular();
+        })();
     </script>
 </body>
 </html>
