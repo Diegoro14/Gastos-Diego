@@ -2341,10 +2341,10 @@ function semanaDe(ym, dia) {
             const parseNum = s => parseFloat(String(s).replace(/[^\d,]/g, '').replace(',', '.'));
 
             /* Número animado con resorte: parte del valor actual y se asienta sin rebote */
-            const setTotal = (() => {
+            const makeSpring = (el, fmt) => {
                 let value = 0, target = 0, vel = 0, raf = 0, last = 0;
                 const k = 220, c = 2 * Math.sqrt(k);
-                const render = () => { totalEl.textContent = clp(value); };
+                const render = () => { el.textContent = fmt(value); };
                 const step = now => {
                     const dt = Math.min((now - last) / 1000, 1 / 30); last = now;
                     vel += (-k * (value - target) - c * vel) * dt;
@@ -2358,7 +2358,10 @@ function semanaDe(ym, dia) {
                     if (reduce) { value = v; render(); return; }
                     if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
                 };
-            })();
+            };
+            const setTotal = makeSpring(totalEl, clp);
+            const setOrig = makeSpring(origEl, clp);
+            const setDisc = makeSpring(discEl, v => '−' + clp(v));
 
             // Puntos de miles mientras escribes el precio
             function formatMonto() {
@@ -2374,13 +2377,15 @@ function semanaDe(ym, dia) {
                 const desc = base * p / 100;
                 const total = base - desc;
 
-                origEl.textContent = clp(base);
-                discEl.textContent = '−' + clp(desc);
+                setOrig(Math.round(base));
+                setDisc(Math.round(desc));
                 pctTxt.textContent = (Number.isInteger(p) ? p : p.toString().replace('.', ',')) + '%';
                 setTotal(Math.round(total));
             }
 
-            monto.addEventListener('input', formatMonto);
+            // Si borras el precio o el porcentaje (o queda en 0), el detalle y el total bajan a cero al instante, con animación
+            monto.addEventListener('input', () => { formatMonto(); if (!(parseNum(monto.value) > 0)) calcular(); });
+            pct.addEventListener('input', () => { if (!(parseNum(pct.value) > 0)) calcular(); });
             btn.addEventListener('click', calcular);
             [monto, pct].forEach(el => el.addEventListener('keydown', e => {
                 if (e.key === 'Enter') { e.preventDefault(); el.blur(); calcular(); }
