@@ -346,6 +346,12 @@
         }
         #tab-percent .pc-field input::placeholder { color: var(--label2); font-weight: 400; }
         #tab-percent .pc-field input:focus { box-shadow: none; }
+        #tab-percent .pc-x { flex: none; align-self: center; width: 28px; height: 28px; margin: -6px -6px -6px 2px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; opacity: 0; transform: scale(.6); pointer-events: none; transition: opacity .15s ease, transform .15s ease; }
+        #tab-percent .pc-field.has .pc-x { opacity: 1; transform: none; pointer-events: auto; }
+        #tab-percent .pc-x svg { width: 20px; height: 20px; }
+        #tab-percent .pc-x circle { fill: var(--label3); }
+        #tab-percent .pc-x path { stroke: var(--card); stroke-width: 2.4; stroke-linecap: round; fill: none; }
+        #tab-percent .pc-x:active { transform: scale(.85); }
         #tab-percent .pc-btn {
             display: block; width: 100%; appearance: none; border: 0; cursor: pointer;
             background: var(--blue); color: #fff; font: inherit; font-size: 1.375rem; font-weight: 700; letter-spacing: -.01em;
@@ -964,6 +970,7 @@ function semanaDe(ym, dia) {
                         <label for="pc-monto">Precio original</label>
                         <div class="pc-field">
                             <input id="pc-monto" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="" aria-label="Precio original en pesos">
+                            <button type="button" class="pc-x" data-for="pc-monto" aria-label="Borrar precio" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg></button>
                         </div>
                     </div>
                 </section>
@@ -975,6 +982,7 @@ function semanaDe(ym, dia) {
                         <div class="pc-field">
                             <input id="pc-pct" type="text" inputmode="decimal" autocomplete="off" placeholder="0" value="" aria-label="Porcentaje de descuento">
                             <span>%</span>
+                            <button type="button" class="pc-x" data-for="pc-pct" aria-label="Borrar porcentaje" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg></button>
                         </div>
                     </div>
                 </section>
@@ -2384,14 +2392,23 @@ function semanaDe(ym, dia) {
             }
 
             // Si borras el precio o el porcentaje (o queda en 0), el detalle y el total bajan a cero al instante, con animación
-            monto.addEventListener('input', () => { formatMonto(); if (!(parseNum(monto.value) > 0)) calcular(); });
-            pct.addEventListener('input', () => { if (!(parseNum(pct.value) > 0)) calcular(); });
+            // Botón ✕ de cada campo: aparece cuando hay algo escrito y borra al tiro
+            const syncX = el => el.closest('.pc-field').classList.toggle('has', el.value.trim() !== '');
+            monto.addEventListener('input', () => { formatMonto(); syncX(monto); if (!(parseNum(monto.value) > 0)) calcular(); });
+            pct.addEventListener('input', () => { syncX(pct); if (!(parseNum(pct.value) > 0)) calcular(); });
+            document.querySelectorAll('#tab-percent .pc-x').forEach(b => {
+                b.addEventListener('click', () => {
+                    const el = g(b.dataset.for);
+                    el.value = '';
+                    syncX(el); calcular(); el.blur();   // cierra el teclado para que se vea la animación
+                });
+            });
             btn.addEventListener('click', calcular);
             [monto, pct].forEach(el => el.addEventListener('keydown', e => {
                 if (e.key === 'Enter') { e.preventDefault(); el.blur(); calcular(); }
             }));
 
-            formatMonto(); calcular();
+            formatMonto(); syncX(monto); syncX(pct); calcular();
         })();
     </script>
 </body>
