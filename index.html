@@ -331,6 +331,28 @@
         .acc-pad { padding-top: 1rem; }
         @media (prefers-reduced-motion: reduce) { .acc-body, .acc-chev { transition: none !important; } }
 
+        /* Íconos de categorías */
+        .ic-tile { width: 2.25rem; height: 2.25rem; border-radius: .625rem; background: color-mix(in srgb, var(--c, #8e8e93) 18%, transparent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.125rem; flex: none; }
+        .ic-tile.big { width: 3.5rem; height: 3.5rem; border-radius: 1rem; font-size: 1.875rem; }
+        .ic-group { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; color: var(--label2); margin: 1rem .25rem .25rem; }
+        .ic-row { display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; padding: .5rem .25rem; border-bottom: .5px solid var(--sep); }
+        .ic-row:last-child { border-bottom: 0; }
+        .ic-row .ic-name { flex: 1; min-width: 0; font-size: 1rem; letter-spacing: -0.01em; }
+        .ic-row .ic-chg { font-size: .8125rem; color: var(--label2); }
+        .ic-field { display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; padding: .5rem .75rem; min-height: 2.875rem; border-radius: .75rem; background: var(--field); }
+        .ic-field-txt { flex: 1; min-width: 0; font-size: 1rem; letter-spacing: -0.01em; }
+        .ic-field-act { font-size: .9375rem; color: var(--tint); font-weight: 500; }
+        .ic-preview { display: flex; align-items: center; gap: .875rem; }
+        .ic-preview .ic-name { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.012em; }
+        .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .25rem; max-height: 14rem; overflow-y: auto; overscroll-behavior: contain; padding: .25rem; background: var(--field); border-radius: .875rem; }
+        .ic-grid button { height: 2.75rem; border-radius: .625rem; font-size: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+        .ic-grid button:active, .ic-grid button.sel { background: var(--fill); }
+        #icon-modal .scrim { opacity: 0; transition: opacity 250ms ease; }
+        #icon-modal.show .scrim { opacity: 1; }
+        #icon-modal .sheet { transform: translate3d(0, 105%, 0); transition: transform 380ms cubic-bezier(.32,.72,0,1); }
+        #icon-modal.show .sheet { transform: none; }
+        @media (prefers-reduced-motion: reduce) { #icon-modal .scrim, #icon-modal .sheet { transition: none; } }
+
         /* Porcentaje (calculadora de descuentos) */
         #tab-percent .pc-cap { font-size: .8125rem; letter-spacing: .01em; text-transform: uppercase; color: var(--label2); margin: 0 16px 8px; font-weight: 500; }
         #tab-percent .pc-card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; }
@@ -1280,6 +1302,13 @@ function semanaDe(ym, dia) {
                             <select id="edit-category"></select>
                         </label>
                     </div>
+                    <div class="field"><span class="lbl">Ícono de este gasto</span>
+                        <button type="button" class="ic-field press" onclick="openIconPicker()">
+                            <span class="ic-tile" id="edit-icon-tile"></span>
+                            <span class="ic-field-txt" id="edit-icon-text">El de su categoría</span>
+                            <span class="ic-field-act">Cambiar</span>
+                        </button>
+                    </div>
                     <div class="form-2">
                         <label class="field"><span class="lbl">Fecha</span>
                             <input type="date" id="edit-date">
@@ -1296,6 +1325,30 @@ function semanaDe(ym, dia) {
                     </label>
                 </form>
                 <button type="button" onclick="deleteFromSheet()" class="btn btn-danger btn-block press"><i class="fa-solid fa-trash"></i> Eliminar gasto</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Selector de ícono -->
+    <div id="icon-modal" class="modal hidden" style="z-index:75" role="dialog" aria-modal="true" aria-labelledby="icon-title">
+        <div class="scrim" id="icon-scrim" onclick="closeIconPicker()"></div>
+        <div class="sheet" id="icon-sheet">
+            <div class="sheet-grab">
+                <div class="grabber"></div>
+                <div class="sheet-head">
+                    <button type="button" class="link" onclick="closeIconPicker()">Cancelar</button>
+                    <h3 id="icon-title">Ícono del gasto</h3>
+                    <button type="button" class="link strong" onclick="saveIconPicker()">Listo</button>
+                </div>
+            </div>
+            <div class="sheet-body">
+                <div class="ic-preview"><span class="ic-tile big" id="icon-prev"></span><span id="icon-name" class="ic-name"></span></div>
+                <label class="field"><span class="lbl">Escribe o pega un emoji (abre el teclado de emojis)</span>
+                    <input type="text" id="icon-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="🙂" style="text-align:center;font-size:max(16px,1.5rem)">
+                </label>
+                <div class="ic-grid" id="icon-grid"></div>
+                <button type="button" class="btn btn-gray btn-sm press" onclick="resetIconPicker()">Usar el ícono de la categoría</button>
             </div>
         </div>
     </div>
@@ -1324,7 +1377,7 @@ function semanaDe(ym, dia) {
 
         // Categorías agrupadas. Los nombres de las 7 originales no cambian (compatibles con tu planilla).
         const CAT_GROUPS = [
-            { name: 'Alimentación', items: [['Supermercado', '🛒'], ['Feria y Verduras', '🥬'], ['Carnicería', '🥩'], ['Panadería', '🥖'], ['Café y Snacks', '☕'], ['Delivery', '🛵']] },
+            { name: 'Alimentación', items: [['Supermercado', '🛒'], ['Feria y Verduras', '🥬'], ['Carnicería', '🥩'], ['Panadería', '🥖'], ['Huevos', '🥚'], ['Café y Snacks', '☕'], ['Delivery', '🛵']] },
             { name: 'Hogar y cuentas', items: [['Servicios & Cuentas', '💡'], ['Arriendo o Dividendo', '🏠'], ['Gastos Comunes', '🏢'], ['Hogar y Ferretería', '🔨'], ['Muebles y Decoración', '🛋️']] },
             { name: 'Transporte', items: [['Transporte', '🚗'], ['Combustible', '⛽'], ['Mantención Auto', '🔧'], ['Peajes y Estacionamiento', '🅿️']] },
             { name: 'Salud y bienestar', items: [['Salud & Farmacia', '💊'], ['Médico y Dentista', '🩺'], ['Deporte y Gimnasio', '🏋️'], ['Belleza y Cuidado', '✂️']] },
@@ -1340,8 +1393,11 @@ function semanaDe(ym, dia) {
         // Categorías que vengan de tu planilla y no estén en la lista también se pueden ver y editar
         const extraCategories = () => [...new Set(expenses.map(e => e.category).filter(c => c && !CATEGORIES.includes(c)))];
         const allCategories = () => CATEGORIES.concat(extraCategories());
+        // Huevos tiene color propio, así las demás categorías conservan el color que ya tenían
+        const COLOR_ORDER = CATEGORIES.filter(n => n !== 'Huevos');
         function catColor(c) {
-            const i = CATEGORIES.indexOf(c);
+            if (c === 'Huevos') return '#ffd60a';
+            const i = COLOR_ORDER.indexOf(c);
             if (i >= 0) return CAT_PALETTE[i % CAT_PALETTE.length];
             let h = 0; for (const ch of String(c || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
             return CAT_PALETTE[h % CAT_PALETTE.length];
@@ -1350,9 +1406,9 @@ function semanaDe(ym, dia) {
 
         function categoryOptionsHTML() {
             const attr = t => escapeHtml(String(t)).replace(/"/g, '&quot;');
-            let h = CAT_GROUPS.map(g => `<optgroup label="${g.name}">` + g.items.map(([n, e]) => `<option value="${attr(n)}">${e} ${attr(n)}</option>`).join('') + '</optgroup>').join('');
+            let h = CAT_GROUPS.map(g => `<optgroup label="${g.name}">` + g.items.map(([n]) => `<option value="${attr(n)}">${catEmoji(n)} ${attr(n)}</option>`).join('') + '</optgroup>').join('');
             const ex = extraCategories();
-            if (ex.length) h += '<optgroup label="De tu planilla">' + ex.map(n => `<option value="${attr(n)}">🏷️ ${attr(n)}</option>`).join('') + '</optgroup>';
+            if (ex.length) h += '<optgroup label="De tu planilla">' + ex.map(n => `<option value="${attr(n)}">${catEmoji(n)} ${attr(n)}</option>`).join('') + '</optgroup>';
             return h;
         }
         function refreshCategoryOptions() {
@@ -1414,6 +1470,8 @@ function semanaDe(ym, dia) {
             $('edit-date').value = item.date;
             $('edit-time').value = (item.time || '').toString().substring(0, 5);
             $('edit-status').value = item.status || 'Pagado';
+            editIcon = expIconMap[expKey(item)] || '';
+            editIconTile();
 
             $('edit-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -1867,6 +1925,7 @@ function semanaDe(ym, dia) {
             if (!confirm('¿Eliminar este gasto?')) return;
             const old = expenses.find(item => item.id === id);
             expenses = expenses.filter(item => item.id !== id);
+            if (old) { delete expIconMap[expKey(old)]; saveExpIconMap(); }
             saveExpenses();
             renderHistoryTable();
             renderDashboard();
@@ -1893,6 +1952,10 @@ function semanaDe(ym, dia) {
                 expenses[index].date = $('edit-date').value;
                 expenses[index].time = $('edit-time').value || old.time;
                 expenses[index].status = $('edit-status').value;
+                // Ícono propio del gasto (se mueve con el gasto si cambias fecha, hora, nombre o monto)
+                delete expIconMap[expKey(old)];
+                if (editIcon) expIconMap[expKey(expenses[index])] = editIcon;
+                saveExpIconMap();
 
                 saveExpenses();
                 closeEditModal();
@@ -2119,7 +2182,7 @@ function semanaDe(ym, dia) {
 
             const txHtml = item => `
                 <button class="tx press" onclick="openEditModal('${item.id}')">
-                    <span class="tx-ico" style="--c:${catColor(item.category)}">${catEmoji(item.category)}</span>
+                    <span class="tx-ico" style="--c:${catColor(item.category)}">${expIcon(item)}</span>
                     <span class="tx-main">
                         <span class="tx-title">${escapeHtml(String(item.desc || ''))}</span>
                         <span class="tx-meta">${escapeHtml(String(item.category || 'General'))} · ${escapeHtml(String(item.method || ''))}${item.status === 'Pendiente' ? ' · <span class="pend">Pendiente</span>' : ''}</span>
@@ -2334,6 +2397,65 @@ function semanaDe(ym, dia) {
             const st = accState();
             document.querySelectorAll('.acc').forEach(el => setAcc(el, !!st[el.dataset.acc]));
         })();
+
+        /* ───────── Ícono propio de cada gasto ───────── */
+        // Cada gasto puede tener su ícono (ej. "Metro" 🚇 y "Bus" 🚌 dentro de Transporte). Si no tiene, usa el de su categoría.
+        const ICON_CHOICES = ['🥚','🥛','🧀','🍞','🥖','🥩','🍗','🐟','🍎','🍌','🍇','🥬','🥕','🍅','🥑','🍝','🍕','🍔','🍟','🌮','🍣','🍰','🍫','🍦','☕','🍺','🍷','🥤','🧃','🛒','🛵','🏠','💡','🚿','🛋️','🔨','🧹','🧺','🛏️','🔑','📺','🚗','🚕','🚌','🚇','🚲','⛽','🔧','🅿️','✈️','🏖️','💊','🩺','🦷','🏋️','💈','✂️','🧴','🎬','🎮','🎵','🎁','🎉','📱','💻','🎧','📷','🎓','📚','✏️','🐾','🐶','🐱','👶','🧸','🌱','⚽','🎣','👕','👟','👜','🛍️','💳','🏦','💰','🧾','📈','🛡️','❤️','🔁','📦','🏷️','⭐','🔥'];
+        let expIconMap = {};
+        try { expIconMap = JSON.parse(localStorage.getItem('gp-exp-icons') || '{}') || {}; } catch (e) { expIconMap = {}; }
+        function saveExpIconMap() { try { localStorage.setItem('gp-exp-icons', JSON.stringify(expIconMap)); } catch (e) {} }
+        // Clave estable del gasto (no depende del número de fila, así sobrevive a la sincronización con Sheets)
+        const expKey = e => [e.date, String(e.time || '').substring(0, 5), String(e.desc || '').trim(), e.amount].join('|');
+        function expIcon(e) { return expIconMap[expKey(e)] || catEmoji(e.category); }
+
+        const iconState = { value: '' };
+        let editIcon = '';   // ícono elegido para el gasto que se está editando ('' = el de su categoría)
+        const lastGrapheme = v => {
+            v = String(v || '').trim(); if (!v) return '';
+            if (window.Intl && Intl.Segmenter) { const a = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v)]; return a.length ? a[a.length - 1].segment : ''; }
+            const a = Array.from(v); return a[a.length - 1] || '';
+        };
+        function editIconTile() {
+            const cat = $('edit-category').value;
+            const t = $('edit-icon-tile');
+            t.textContent = editIcon || catEmoji(cat);
+            t.style.setProperty('--c', catColor(cat));
+            $('edit-icon-text').textContent = editIcon ? 'Ícono propio' : 'El de su categoría';
+        }
+        function iconPickerPreview() {
+            const cat = $('edit-category').value;
+            const v = iconState.value || catEmoji(cat);
+            const t = $('icon-prev'); t.textContent = v; t.style.setProperty('--c', catColor(cat));
+            document.querySelectorAll('#icon-grid button').forEach(b => b.classList.toggle('sel', !!iconState.value && b.textContent === v));
+        }
+        function openIconPicker() {
+            iconState.value = editIcon;
+            $('icon-name').textContent = $('edit-desc').value.trim() || 'Este gasto';
+            $('icon-input').value = editIcon;
+            $('icon-grid').innerHTML = ICON_CHOICES.map(e => `<button type="button" class="press" aria-label="${e}">${e}</button>`).join('');
+            iconPickerPreview();
+            const m = $('icon-modal'); m.classList.remove('hidden');
+            requestAnimationFrame(() => requestAnimationFrame(() => m.classList.add('show')));
+        }
+        function closeIconPicker() {
+            const m = $('icon-modal'); if (m.classList.contains('hidden')) return;
+            $('icon-input').blur();
+            m.classList.remove('show');
+            setTimeout(() => m.classList.add('hidden'), reduceMotion() ? 0 : 380);
+        }
+        // "Listo" solo lo deja elegido; se guarda en el gasto al tocar "Guardar" en la hoja de edición
+        function saveIconPicker() { editIcon = iconState.value; editIconTile(); closeIconPicker(); }
+        function resetIconPicker() { iconState.value = ''; $('icon-input').value = ''; iconPickerPreview(); }
+        $('icon-grid').addEventListener('click', e => {
+            const b = e.target.closest('button'); if (!b) return;
+            iconState.value = b.textContent; $('icon-input').value = iconState.value; iconPickerPreview();
+        });
+        $('icon-input').addEventListener('input', e => {
+            const g = lastGrapheme(e.target.value);
+            iconState.value = g; e.target.value = g; iconPickerPreview();
+        });
+        $('icon-input').addEventListener('focus', e => { try { e.target.select(); } catch (err) {} });
+        $('edit-category').addEventListener('change', editIconTile);
 
         // Porcentaje: calculadora de descuentos (mismo cálculo y animación de resorte de la app original)
         (() => {
